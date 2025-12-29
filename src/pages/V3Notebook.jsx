@@ -1,119 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
 import V3Layout from '@/components/v3/V3Layout';
-import V3NotebookCard from '@/components/v3/notebook/V3NotebookCard';
-import V3NotebookOverlay from '@/components/v3/notebook/V3NotebookOverlay';
-import { Search, Plus, Book } from 'lucide-react';
-import { cn } from "@/lib/utils";
-
-import { useNotebook } from '@/hooks/useNotebook';
-
-// MOCK_NOTES removed in favor of hook
-
+import { Book, Search } from 'lucide-react';
 
 export default function V3Notebook() {
-    const { data: notes = [], isLoading } = useNotebook();
-    const [selectedNote, setSelectedNote] = useState(null);
-    const [activeFilter, setActiveFilter] = useState('All');
-    const [search, setSearch] = useState('');
-
-    const filtered = notes.filter(n => {
-        // Map real data types to UI categories if needed, or rely on 'type' field
-        const type = n.type || 'My Notes';
-        const matchesFilter = activeFilter === 'All' ||
-            (activeFilter === 'Files' && type === 'file') ||
-            (activeFilter === 'Session' && type === 'session') ||
-            (activeFilter === 'Client' && type === 'client') ||
-            (activeFilter === 'My Notes' && (type === 'general' || type === 'template'));
-
-        // Fallback: strict match if mapping above is not exhaustive
-        const finalFilter = activeFilter === 'All' || matchesFilter || n.category === activeFilter;
-
-        const matchesSearch = (n.title || 'Untitled').toLowerCase().includes(search.toLowerCase());
-        return finalFilter && matchesSearch;
-    });
-
-    const getNotePreview = (note) => {
-        // Hydrate mock-like fields if missing
-        return {
-            ...note,
-            snippet: note.snippet || (note.content ? note.content.substring(0, 60) + '...' : 'No content'),
-            timestamp: note.created_at ? new Date(note.created_at).toLocaleDateString() : 'Just now',
-            // Default category if missing for display
-            category: note.category || (note.type === 'file' ? 'Files' : 'My Notes')
-        };
-    };
-
     return (
-        <V3Layout title="Notebook">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-normal text-stone-800 tracking-tight">Notebook</h1>
-                <p className="text-stone-500 text-sm mt-1">Your personal library</p>
-            </div>
-
-            {/* Search & Filter */}
-            <div className="sticky top-[64px] bg-stone-50 pt-2 pb-6 z-30 space-y-4">
+        <V3Layout title="Notebook" initialActiveTab="more">
+            <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                     <input
                         type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search notes & files..."
-                        className="w-full h-12 pl-11 pr-4 rounded-xl bg-white border border-stone-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all placeholder:text-stone-400 shadow-sm"
+                        placeholder="Search your notes..."
+                        className="w-full bg-white border-none rounded-2xl h-14 pl-12 pr-4 text-base shadow-sm focus:ring-1 focus:ring-teal-500"
                     />
                 </div>
 
-                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:justify-center">
-                    {['All', 'My Notes', 'Client', 'Session', 'Files'].map(filter => (
-                        <button
-                            key={filter}
-                            onClick={() => setActiveFilter(filter)}
-                            className={cn(
-                                "px-4 py-1.5 rounded-full text-sm font-medium transition-colors border whitespace-nowrap",
-                                activeFilter === filter
-                                    ? "bg-stone-800 text-white border-stone-800"
-                                    : "bg-white text-stone-600 border-stone-200 hover:bg-stone-100"
-                            )}
-                        >
-                            {filter}
-                        </button>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                        { title: 'Sleep Protocol Ideas', preview: 'Research into Circadian entrainment using light therapy...', date: '2d ago', tag: 'Research' },
+                        { title: 'Meeting Notes - Sarah', preview: 'Key takeaways from intake: High stress, poor sleep hygiene...', date: '5d ago', tag: 'Client' },
+                        { title: 'Q4 Goals', preview: 'Revenue targets and marketing spend allocation...', date: '1w ago', tag: 'Business' },
+                    ].map((note, i) => (
+                        <div key={i} className="bg-white p-6 rounded-3xl border border-stone-100 hover:border-teal-200 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col h-48">
+                            <div className="flex items-start justify-between mb-2">
+                                <div className="p-2 bg-stone-50 rounded-lg group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                    <Book className="w-5 h-5" />
+                                </div>
+                                <span className="text-[10px] font-bold uppercase text-stone-400 border border-stone-100 px-2 py-1 rounded-full">{note.tag}</span>
+                            </div>
+                            <h3 className="font-bold text-stone-900 text-lg mb-2 group-hover:text-teal-700 transition-colors">{note.title}</h3>
+                            <p className="text-stone-500 text-sm line-clamp-2 flex-1">{note.preview}</p>
+                            <div className="text-xs text-stone-400 mt-4">{note.date}</div>
+                        </div>
                     ))}
                 </div>
             </div>
-
-            {/* List */}
-            <div className="space-y-2 pb-20">
-                {isLoading ? (
-                    <div className="text-center py-12 text-stone-500">Loading notebook...</div>
-                ) : filtered.length > 0 ? filtered.map(note => (
-                    <V3NotebookCard
-                        key={note.id}
-                        note={getNotePreview(note)}
-                        onClick={() => setSelectedNote(getNotePreview(note))}
-                    />
-                )) : (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
-                            <Book className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-stone-900 font-medium">No notes found</h3>
-                        <p className="text-stone-500 text-sm mt-1">Capture your first thought.</p>
-                    </div>
-                )}
-            </div>
-
-            {/* FAB */}
-            <button className="fixed bottom-20 right-6 w-14 h-14 bg-teal-700 hover:bg-teal-800 text-white rounded-full shadow-lg shadow-teal-900/20 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40">
-                <Plus className="w-6 h-6" />
-            </button>
-
-            {/* Detail Overlay */}
-            <V3NotebookOverlay
-                note={selectedNote}
-                isOpen={!!selectedNote}
-                onClose={() => setSelectedNote(null)}
-            />
-
         </V3Layout>
     );
 }

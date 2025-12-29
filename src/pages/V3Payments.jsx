@@ -1,118 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import V3Layout from '@/components/v3/V3Layout';
-import V3PaymentCard from '@/components/v3/payments/V3PaymentCard';
-import V3PaymentOverlay from '@/components/v3/payments/V3PaymentOverlay';
-import { Plus, CreditCard } from 'lucide-react';
-import { cn } from "@/lib/utils";
-
-import { usePayments } from '@/hooks/usePayments';
-
-// MOCK_INVOICES removed in favor of hook
-
+import { TrendingUp, Download } from 'lucide-react';
 
 export default function V3Payments() {
-    const { data: invoices = [], isLoading } = usePayments();
-    const [selectedInvoice, setSelectedInvoice] = useState(null);
-    const [activeFilter, setActiveFilter] = useState('All');
-
-    const filtered = invoices.filter(inv => {
-        return activeFilter === 'All' || inv.status === activeFilter;
-    });
-
-    // Helper to parse amount
-    const parseAmount = (amt) => {
-        if (typeof amt === 'number') return amt;
-        if (!amt) return 0;
-        return parseFloat(amt.replace(/[^0-9.-]+/g, ""));
-    };
-
-    const totalRevenue = invoices
-        .filter(i => i.status === 'Paid')
-        .reduce((sum, i) => sum + parseAmount(i.amount), 0);
-
-    const totalOutstanding = invoices
-        .filter(i => i.status === 'Pending' || i.status === 'Overdue')
-        .reduce((sum, i) => sum + parseAmount(i.amount), 0);
-
-    const formatCurrency = (val) => {
-        return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(val);
-    };
-
     return (
-        <V3Layout title="Payments">
-            <div className="text-center mb-6">
-                <h1 className="text-3xl font-normal text-stone-800 tracking-tight">Payments</h1>
-                <p className="text-stone-500 text-sm mt-1">Invoices and billing</p>
-            </div>
-
-            {/* Summary Card */}
-            <div className="bg-stone-900 rounded-2xl p-6 text-white mb-8 shadow-lg shadow-stone-900/10 relative overflow-hidden">
-                <div className="relative z-10">
-                    <span className="text-stone-400 text-xs font-semibold uppercase tracking-wider">Total Revenue</span>
-                    <div className="flex items-baseline gap-1 mt-1">
-                        <span className="text-3xl font-bold">{formatCurrency(totalRevenue)}</span>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm">
-                        <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                        <span className="text-stone-300">Outstanding: <span className="text-white font-medium">{formatCurrency(totalOutstanding)}</span></span>
+        <V3Layout title="Payments" initialActiveTab="more">
+            <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500">
+                {/* Summary Card */}
+                <div className="bg-stone-900 text-white p-6 rounded-3xl shadow-lg">
+                    <div className="text-stone-400 text-sm font-medium mb-1">Total Revenue (Dec)</div>
+                    <div className="text-4xl font-bold">$12,450.00</div>
+                    <div className="mt-4 flex gap-4">
+                        <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
+                            <TrendingUp className="w-4 h-4" /> +15% vs last month
+                        </div>
                     </div>
                 </div>
-                {/* Decorative */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-900/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                <div className="absolute bottom-0 right-20 w-24 h-24 bg-rose-900/20 rounded-full blur-2xl"></div>
-            </div>
 
-            {/* Filter */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar sm:justify-center">
-                {['All', 'Pending', 'Paid', 'Overdue'].map(filter => (
-                    <button
-                        key={filter}
-                        onClick={() => setActiveFilter(filter)}
-                        className={cn(
-                            "px-4 py-1.5 rounded-full text-sm font-medium transition-colors border whitespace-nowrap",
-                            activeFilter === filter
-                                ? "bg-white text-stone-900 border-stone-200 shadow-sm"
-                                : "bg-transparent text-stone-500 border-transparent hover:bg-stone-100"
-                        )}
-                    >
-                        {filter}
-                    </button>
-                ))}
-            </div>
-
-            {/* List */}
-            <div className="pb-20">
-                {isLoading ? (
-                    <div className="text-center py-12 text-stone-500">Loading invoices...</div>
-                ) : filtered.length > 0 ? filtered.map(inv => (
-                    <V3PaymentCard
-                        key={inv.id}
-                        invoice={inv}
-                        onClick={() => setSelectedInvoice(inv)}
-                    />
-                )) : (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
-                            <CreditCard className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-stone-900 font-medium">No invoices found</h3>
-                        <p className="text-stone-500 text-sm mt-1">Create an invoice to get started.</p>
+                {/* Transactions */}
+                <div className="bg-white rounded-3xl border border-stone-100 overflow-hidden">
+                    <div className="p-4 border-b border-stone-100 font-bold text-stone-900">Recent Transactions</div>
+                    <div className="divide-y divide-stone-50">
+                        {[
+                            { id: 1, desc: '12-Week Package', client: 'Mike Ross', amount: '$2,500', date: 'Today', status: 'Paid' },
+                            { id: 2, desc: 'Single Session', client: 'Jessica Pearson', amount: '$250', date: 'Yesterday', status: 'Pending' },
+                        ].map((tx) => (
+                            <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-stone-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${tx.status === 'Paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                        {tx.status === 'Paid' ? '✓' : '!'}
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold text-stone-900">{tx.desc}</div>
+                                        <div className="text-xs text-stone-500">{tx.client} • {tx.date}</div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="font-bold text-stone-900">{tx.amount}</div>
+                                    <button className="text-xs text-stone-400 hover:text-stone-900 flex items-center gap-1 justify-end mt-1">
+                                        <Download className="w-3 h-3" /> Invoice
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>
             </div>
-
-            {/* FAB */}
-            <button className="fixed bottom-20 right-6 w-14 h-14 bg-teal-700 hover:bg-teal-800 text-white rounded-full shadow-lg shadow-teal-900/20 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40">
-                <Plus className="w-6 h-6" />
-            </button>
-
-            {/* Detail Overlay */}
-            <V3PaymentOverlay
-                invoice={selectedInvoice}
-                isOpen={!!selectedInvoice}
-                onClose={() => setSelectedInvoice(null)}
-            />
-
         </V3Layout>
     );
 }

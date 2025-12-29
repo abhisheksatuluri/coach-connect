@@ -33,14 +33,18 @@ import V2Notebook from "./V2Notebook";
 
 // V3 Components
 import V3Dashboard from "./V3Dashboard";
-import V3Clients from "./V3Clients";
+import V3Contacts from "./V3Contacts";
+import V3ContactPage from "./V3ContactPage";
 import V3Sessions from "./V3Sessions";
+import V3SessionPage from "./V3SessionPage";
 import V3Journeys from "./V3Journeys";
+import V3JourneyPage from "./V3JourneyPage";
 import V3Tasks from "./V3Tasks";
 import V3Notebook from "./V3Notebook";
 import V3KnowledgeBase from "./V3KnowledgeBase";
 import V3Payments from "./V3Payments";
-import V3Practitioners from "./V3Practitioners";
+// import V3Practitioners from "./V3Practitioners"; // Deprecated/Merged into Contacts
+const V3Practitioners = V3Contacts; // Alias for safety if needed
 
 // V4 & V5 Components
 import V4Dashboard from "./V4Dashboard";
@@ -125,11 +129,21 @@ function PagesContent() {
                 <Route path="/v2/payments" element={<V2Payments />} />
                 <Route path="/v2/practitioners" element={<V2Practitioners />} />
 
-                {/* ================= V3 ROUTES (ZEN FOCUS) ================= */}
+                {/* ================= V3 ROUTES (ZEN HYBRID) ================= */}
                 <Route path="/v3" element={<V3Dashboard />} />
-                <Route path="/v3/clients" element={<V3Clients />} />
+
+                {/* Sliders (List Views) */}
+                <Route path="/v3/clients" element={<V3Contacts />} /> {/* Redirect/Alias for legacy */}
+                <Route path="/v3/contacts" element={<V3Contacts />} />
                 <Route path="/v3/sessions" element={<V3Sessions />} />
                 <Route path="/v3/journeys" element={<V3Journeys />} />
+
+                {/* Detail Views */}
+                <Route path="/v3/contacts/:id" element={<V3ContactPage />} />
+                <Route path="/v3/sessions/:id" element={<V3SessionPage />} />
+                <Route path="/v3/journeys/:id" element={<V3JourneyPage />} />
+
+                {/* Secondary Pages */}
                 <Route path="/v3/tasks" element={<V3Tasks />} />
                 <Route path="/v3/notebook" element={<V3Notebook />} />
                 <Route path="/v3/knowledge-base" element={<V3KnowledgeBase />} />
