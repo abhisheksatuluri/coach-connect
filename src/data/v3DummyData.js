@@ -2,7 +2,7 @@
 // V3 Dummy Data Generator
 // Based on User Requirements for V3 Premium Experience
 
-import { startOfToday, addDays, subDays, addHours, format, subWeeks } from 'date-fns';
+import { startOfToday, addDays, subDays, addHours, format, subWeeks, subMonths } from 'date-fns';
 
 // Helpers
 const getAvatarInitials = (name) => {
@@ -252,22 +252,22 @@ export const tasksData = [
     { id: 't8', title: 'Complete intake form review', dueDate: subDays(today, 5), priority: 'Medium', contactId: 'c4', overdue: true, completed: false },
     { id: 't9', title: 'Send welcome packet', dueDate: subDays(today, 1), priority: 'Low', contactId: 'c4', completed: true },
     { id: 't10', title: 'Book follow-up session', dueDate: subDays(today, 3), priority: 'Medium', contactId: 'c3', completed: true },
-    { id: 't11', title: 'Research new meditation techniques', priority: 'Low', type: 'Personal', completed: false },
-    { id: 't12', title: 'Create workshop outline', priority: 'Medium', type: 'Personal', completed: false }
+    { id: 't11', title: 'Research new meditation techniques', dueDate: addDays(today, 14), priority: 'Low', type: 'Personal', completed: false },
+    { id: 't12', title: 'Create workshop outline', dueDate: addDays(today, 21), priority: 'Medium', type: 'Personal', completed: false }
 ];
 
 // --- NOTES ---
 export const notesData = [
-    { id: 'n1', title: 'Initial assessment notes', contactId: 'c1', content: 'Detailed notes from first meeting covering health history, goals, challenges...', category: 'Session' },
-    { id: 'n2', title: 'Dietary preferences', contactId: 'c1', content: 'Notes about food allergies, likes, dislikes. Allergic to peanuts.', category: 'Personal' },
-    { id: 'n3', title: 'Session observations', contactId: 'c1', content: 'Notes taken during the session 1 week ago.', category: 'Session' },
-    { id: 'n4', title: 'Fitness history', contactId: 'c2', content: 'Background on his exercise experience. Ran a marathon in 2019.', category: 'Personal' },
-    { id: 'n5', title: 'Sleep tracker review', contactId: 'c3', content: 'Notes about her sleep patterns. Wakes up at 3am frequently.', category: 'Progress' },
-    { id: 'n6', title: 'Coaching framework template', type: 'Personal', content: 'Template for structuring sessions: Check-in, Wins, Challenges, Plan.', category: 'General' },
-    { id: 'n7', title: 'Questions for difficult conversations', type: 'Personal', content: 'List of useful questions for resistance.', category: 'General' },
-    { id: 'n8', title: 'Progress update', contactId: 'c1', content: 'Recent progress notes. Lost 2kg this month.', category: 'Progress' },
-    { id: 'n9', title: 'Referral notes', contactId: 'c5', content: 'Notes about Dr Emily. Recommends Mediterranean diet.', category: 'General' },
-    { id: 'n10', title: 'Workshop ideas', type: 'Personal', content: 'Brainstorming: Stress at Work webinar.', category: 'General' }
+    { id: 'n1', title: 'Initial assessment notes', contactId: 'c1', content: 'Detailed notes from first meeting covering health history, goals, challenges...', category: 'Session', date: subWeeks(today, 1) },
+    { id: 'n2', title: 'Dietary preferences', contactId: 'c1', content: 'Notes about food allergies, likes, dislikes. Allergic to peanuts.', category: 'Personal', date: subWeeks(today, 1) },
+    { id: 'n3', title: 'Session observations', contactId: 'c1', content: 'Notes taken during the session 1 week ago.', category: 'Session', date: subWeeks(today, 1) },
+    { id: 'n4', title: 'Fitness history', contactId: 'c2', content: 'Background on his exercise experience. Ran a marathon in 2019.', category: 'Personal', date: subDays(today, 2) },
+    { id: 'n5', title: 'Sleep tracker review', contactId: 'c3', content: 'Notes about her sleep patterns. Wakes up at 3am frequently.', category: 'Progress', date: subDays(today, 3) },
+    { id: 'n6', title: 'Coaching framework template', type: 'Personal', content: 'Template for structuring sessions: Check-in, Wins, Challenges, Plan.', category: 'General', date: subMonths(today, 1) },
+    { id: 'n7', title: 'Questions for difficult conversations', type: 'Personal', content: 'List of useful questions for resistance.', category: 'General', date: subMonths(today, 2) },
+    { id: 'n8', title: 'Progress update', contactId: 'c1', content: 'Recent progress notes. Lost 2kg this month.', category: 'Progress', date: subDays(today, 1) },
+    { id: 'n9', title: 'Referral notes', contactId: 'c5', content: 'Notes about Dr Emily. Recommends Mediterranean diet.', category: 'General', date: subWeeks(today, 2) },
+    { id: 'n10', title: 'Workshop ideas', type: 'Personal', content: 'Brainstorming: Stress at Work webinar.', category: 'General', date: subDays(today, 5) }
 ];
 
 // --- JOURNEYS ---
@@ -314,12 +314,12 @@ export const journeysData = [
 
 // --- PAYMENTS ---
 export const paymentsData = [
-    { id: 'p1', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Paid', date: 'February' },
-    { id: 'p2', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Paid', date: 'March' },
-    { id: 'p3', contactId: 'c2', amount: 600, currency: 'GBP', status: 'Paid', date: 'March' },
-    { id: 'p4', contactId: 'c3', amount: 350, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 5) },
-    { id: 'p5', contactId: 'c4', amount: 200, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 10) },
-    { id: 'p6', contactId: 'c8', amount: 400, currency: 'GBP', status: 'Overdue', daysOverdue: 15 },
-    { id: 'p7', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 3) },
-    { id: 'p8', contactId: 'c2', amount: 600, currency: 'GBP', status: 'Paid', date: 'February' }
+    { id: 'p1', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Paid', date: subMonths(today, 1) },
+    { id: 'p2', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Paid', date: subMonths(today, 2) },
+    { id: 'p3', contactId: 'c2', amount: 600, currency: 'GBP', status: 'Paid', date: subMonths(today, 1) },
+    { id: 'p4', contactId: 'c3', amount: 350, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 5), date: today },
+    { id: 'p5', contactId: 'c4', amount: 200, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 10), date: today },
+    { id: 'p6', contactId: 'c8', amount: 400, currency: 'GBP', status: 'Overdue', daysOverdue: 15, date: subWeeks(today, 2) },
+    { id: 'p7', contactId: 'c1', amount: 400, currency: 'GBP', status: 'Pending', dueDate: addDays(today, 3), date: today },
+    { id: 'p8', contactId: 'c2', amount: 600, currency: 'GBP', status: 'Paid', date: subMonths(today, 1) }
 ];

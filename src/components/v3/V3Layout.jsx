@@ -82,11 +82,11 @@ const contentStaggerVariants = {
 };
 
 
-function V3LayoutContent({ children, title, showBack = false, initialActiveTab = 'dashboard' }) {
+function V3LayoutContent({ children, title, showBack = false, initialActiveTab = 'dashboard', showHeader = true }) {
     const [activeTab, setActiveTab] = useState(initialActiveTab);
     const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-    const { stack, popScreen, isWidgetMenuOpen, setIsWidgetMenuOpen } = useStackNavigation();
+    const { stack, popScreen, clearStack, isWidgetMenuOpen, setIsWidgetMenuOpen } = useStackNavigation();
     const navigate = useNavigate();
 
     // Calculate depth for root view
@@ -95,6 +95,14 @@ function V3LayoutContent({ children, title, showBack = false, initialActiveTab =
     const handleNav = (id) => {
         if (id === 'more') {
             setIsMoreOpen(true);
+            return;
+        }
+
+        // If clicking the already active tab, clear the stack (pop to root)
+        if (id === activeTab) {
+            if (!isRootActive && clearStack) {
+                clearStack();
+            }
             return;
         }
 
@@ -125,11 +133,13 @@ function V3LayoutContent({ children, title, showBack = false, initialActiveTab =
             >
                 {/* Top Header - Global */}
                 <div className={cn("md:pl-[240px] transition-all duration-200")}>
-                    <V3Header
-                        title={title}
-                        showBack={showBack}
-                        isWidgetActive={false} // Handled by persistent icon
-                    />
+                    {showHeader && (
+                        <V3Header
+                            title={title}
+                            showBack={showBack}
+                            isWidgetActive={false} // Handled by persistent icon
+                        />
+                    )}
                 </div>
 
                 {/* Desktop Sidebar */}
@@ -137,15 +147,14 @@ function V3LayoutContent({ children, title, showBack = false, initialActiveTab =
 
                 {/* Main Content Area */}
                 <main className={cn(
-                    "pt-16 pb-20 md:pb-8 flex-1 overflow-y-auto custom-scrollbar md:pl-[240px]"
+                    "flex-1 overflow-hidden md:pl-[240px] flex flex-col",
+                    showHeader ? "pt-16" : "pt-0",
+                    "pb-0 md:pb-8" // Remove default mobile bottom padding as lists handle it
                 )}>
-                    <div className="max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8">
+                    <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col items-stretch h-full">
                         {children}
                     </div>
                 </main>
-
-                {/* Mobile Bottom Nav */}
-                <V3BottomNav activeTab={activeTab} onTabChange={handleNav} />
 
                 {/* Overlay for clicking back to focus */}
                 {!isRootActive && (
@@ -192,20 +201,31 @@ function V3LayoutContent({ children, title, showBack = false, initialActiveTab =
                                 }
                             }}
                         >
-                            {/* Inner Content Wrapper for Stagger Effect */}
-                            {/* This creates the feel that the container lands first, then content resolves */}
-                            <motion.div
-                                className="h-full w-full"
-                                variants={contentStaggerVariants}
-                                initial="hidden"
-                                animate="visible"
-                            >
-                                <ScreenComponent {...screen.props} />
-                            </motion.div>
+                            {/* ISOLATION CONTAINER: Decouples animation transforms from internal layout */}
+                            {/* This div separates the transform layer from the content flow layer */}
+                            <div className="absolute inset-0 w-full h-full overflow-hidden bg-[#FAFAF9] flex flex-col">
+                                <motion.div
+                                    className="flex-1 w-full h-full flex flex-col"
+                                    variants={contentStaggerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                >
+                                    <ScreenComponent {...screen.props} />
+                                </motion.div>
+                            </div>
                         </motion.div>
                     );
                 })}
             </AnimatePresence>
+
+            {/* --- GLOBAL BOTTOM NAV (Layer 100) --- */}
+            {/* Always visible on mobile, sits above everything */}
+            <V3BottomNav
+                activeTab={activeTab}
+                onTabChange={handleNav}
+                visible={true}
+                className="z-[100]"
+            />
 
             {/* --- BOTTOM SHEET WIDGET MENU --- */}
             <V3WidgetMenu

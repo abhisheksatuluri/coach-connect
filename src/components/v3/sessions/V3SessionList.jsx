@@ -1,11 +1,13 @@
-
 import React from 'react';
-import { Calendar, Clock, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, ChevronRight, Video, Phone, Users } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { sessionsData, contactsData } from '@/data/v3DummyData';
 import { useStackNavigation } from '@/context/StackNavigationContext';
 import V3SessionDetail from './V3SessionDetail';
-import { format, isFuture, isToday } from 'date-fns';
+import { format } from 'date-fns';
+import PremiumScrollContainer from '@/components/v3/shared/PremiumScrollContainer';
+import ScrollShrinkHeader from '@/components/v3/shared/ScrollShrinkHeader';
+import StickySectionHeader from '@/components/v3/shared/StickySectionHeader';
 
 export default function V3SessionList() {
     const { pushScreen } = useStackNavigation();
@@ -25,45 +27,70 @@ export default function V3SessionList() {
         const date = new Date(session.date);
 
         return (
-            <div
+            <button
                 onClick={() => pushScreen(V3SessionDetail, { session })}
-                className="p-3 bg-white rounded-xl border border-stone-200 shadow-sm flex items-center gap-3 hover:border-teal-500 hover:shadow-md transition-all cursor-pointer group"
+                className="w-full p-4 bg-white rounded-2xl border border-stone-200 shadow-sm flex items-center gap-4 hover:border-teal-500/50 hover:shadow-md transition-all group text-left active:scale-[0.98] duration-200"
             >
                 <div className={cn(
-                    "w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xs font-bold shrink-0",
+                    "w-12 h-12 rounded-xl flex flex-col items-center justify-center text-xs font-bold shrink-0 transition-colors",
                     session.status === 'Upcoming' ? "bg-teal-50 text-teal-700" : "bg-stone-100 text-stone-400"
                 )}>
-                    <span>{format(date, 'h:mm')}</span>
-                    <span>{format(date, 'a')}</span>
+                    <span>{format(date, 'd')}</span>
+                    <span className="uppercase text-[10px]">{format(date, 'MMM')}</span>
                 </div>
+
                 <div className="flex-1 min-w-0">
-                    <div className="font-bold text-stone-900 text-sm truncate group-hover:text-teal-700 transition-colors">{session.title}</div>
-                    <div className="text-xs text-stone-500 truncate">{contact?.name || 'Unknown Client'} • {format(date, 'MMM d')}</div>
+                    <div className="flex items-center justify-between">
+                        <div className="font-bold text-stone-900 truncate group-hover:text-teal-700 transition-colors">{session.title}</div>
+                        <span className="text-xs font-medium text-stone-400">{format(date, 'h:mm a')}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5">
+                        {contact && <span className="font-medium bg-stone-100 px-1.5 py-0.5 rounded text-stone-600">{contact.name}</span>}
+                        <span>• {session.duration} min</span>
+                        <span>• {session.type}</span>
+                    </div>
                 </div>
-                {session.status === 'Completed' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-            </div>
+
+                {session.status === 'Completed' ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-500/20 group-hover:text-green-500 transition-colors" />
+                ) : (
+                    <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-teal-500 transition-colors" />
+                )}
+            </button>
         );
     };
 
     return (
-        <div className="flex flex-col h-full bg-white">
-            <div className="p-4 border-b border-stone-100 bg-stone-50/50 sticky top-0 z-10">
-                <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Upcoming Schedules</h3>
-                <div className="space-y-2">
-                    {upcoming.length === 0 ? (
-                        <div className="text-sm text-stone-400 italic text-center py-2">No upcoming sessions</div>
-                    ) : (
-                        upcoming.map(s => <SessionItem key={s.id} session={s} />)
-                    )}
-                </div>
-            </div>
+        <div className="flex flex-col h-full bg-[#FAFAF9]">
+            <ScrollShrinkHeader title="Sessions" showBack={false} />
 
-            <div className="flex-1 overflow-y-auto p-4">
-                <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Past Sessions</h3>
-                <div className="space-y-2">
-                    {past.map(s => <SessionItem key={s.id} session={s} />)}
+            <PremiumScrollContainer>
+                <div className="pb-24"> {/* Bottom padding for list */}
+
+                    {/* UPCOMING SECTION */}
+                    {upcoming.length > 0 && (
+                        <div className="relative">
+                            <StickySectionHeader title="Upcoming" />
+                            <div className="px-4 py-2 space-y-3">
+                                {upcoming.map(s => <SessionItem key={s.id} session={s} />)}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PAST SECTION */}
+                    <div className="relative mt-4">
+                        <StickySectionHeader title="Past History" />
+                        <div className="px-4 py-2 space-y-3">
+                            {past.length > 0 ? (
+                                past.map(s => <SessionItem key={s.id} session={s} />)
+                            ) : (
+                                <div className="text-center py-8 text-stone-400 text-sm">No past sessions found</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </PremiumScrollContainer>
         </div>
     );
 }

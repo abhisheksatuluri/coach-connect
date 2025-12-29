@@ -6,6 +6,7 @@ export default function V3Sessions() {
         <V3Layout
             title="Sessions"
             initialActiveTab="sessions"
+            showHeader={false}
         >
             <V3SessionList />
         </V3Layout>

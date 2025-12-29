@@ -2,7 +2,7 @@ import React from 'react';
 import { Home, Users, Calendar, Map, Grid } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export default function V3BottomNav({ activeTab, onTabChange }) {
+export default function V3BottomNav({ activeTab, onTabChange, visible = true, className }) {
     const navItems = [
         { id: 'dashboard', icon: Home, label: 'Home' },
         { id: 'contacts', icon: Users, label: 'Contacts' },
@@ -12,7 +12,13 @@ export default function V3BottomNav({ activeTab, onTabChange }) {
     ];
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-stone-200 z-50 flex items-center justify-around px-2 pb-safe transition-all duration-200">
+        <nav
+            className={cn(
+                "md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-stone-200 z-[60] flex items-center justify-around px-2 pb-safe transition-all duration-300 ease-out",
+                visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-80 pointer-events-none",
+                className
+            )}
+        >
             {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;

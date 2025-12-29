@@ -4,7 +4,7 @@ import V3KnowledgeBaseComponent from '@/components/v3/knowledgebase/V3KnowledgeB
 
 export default function V3KnowledgeBase() {
     return (
-        <V3Layout title="Knowledge Base" initialActiveTab="more">
+        <V3Layout title="Knowledge Base" initialActiveTab="more" showHeader={false}>
             <V3KnowledgeBaseComponent />
         </V3Layout>
     );

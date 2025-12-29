@@ -12,7 +12,7 @@ export default function V3MoreMenu({ isOpen, onClose, onNavigate }) {
         { id: 'tasks', label: 'Tasks', icon: CheckSquare, color: 'text-amber-500' },
         { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-emerald-500' },
         { id: 'notebook', label: 'Notebook', icon: Book, color: 'text-blue-500' },
-        { id: 'knowledge', label: 'Knowledge Base', icon: FileText, color: 'text-indigo-500' },
+        { id: 'knowledge-base', label: 'Knowledge Base', icon: FileText, color: 'text-indigo-500' },
         { id: 'settings', label: 'Settings', icon: Settings, color: 'text-stone-500' },
     ];
 
