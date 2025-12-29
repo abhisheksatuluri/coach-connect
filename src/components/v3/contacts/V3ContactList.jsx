@@ -1,25 +1,21 @@
+
 import React, { useState } from 'react';
 import { Search, ChevronRight, Filter } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { useClients } from '@/hooks/useClients';
-import { useNavigate } from 'react-router-dom';
+import { contactsData } from '@/data/v3DummyData';
+import { useStackNavigation } from '@/context/StackNavigationContext';
+import V3ContactDetail from './V3ContactDetail';
 
-export default function V3ContactList({ onCloseSlider }) {
-    const { data: clients = [] } = useClients();
+export default function V3ContactList() {
+    const { pushScreen } = useStackNavigation();
     const [search, setSearch] = useState('');
-    const [filter, setFilter] = useState('All'); // All, Clients, Practitioners
-    const navigate = useNavigate();
+    const [filter, setFilter] = useState('All'); // All, Client, Practitioner, Lead
 
-    const filtered = clients.filter(c => {
-        const matchesSearch = c.name?.toLowerCase().includes(search.toLowerCase());
-        const matchesFilter = filter === 'All' ? true : (c.type || 'Client') === filter;
+    const filtered = contactsData.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase());
+        const matchesFilter = filter === 'All' ? true : c.type === filter;
         return matchesSearch && matchesFilter;
     });
-
-    const handleSelect = (id) => {
-        if (onCloseSlider) onCloseSlider();
-        navigate(`/v3/contacts/${id}`); // We will assume this route exists or we create it
-    };
 
     return (
         <div className="flex flex-col h-full bg-white">
@@ -55,26 +51,29 @@ export default function V3ContactList({ onCloseSlider }) {
 
             {/* List */}
             <div className="flex-1 overflow-y-auto">
-                {filtered.map(client => (
+                {filtered.map(contact => (
                     <div
-                        key={client.id}
-                        onClick={() => handleSelect(client.id)}
+                        key={contact.id}
+                        onClick={() => pushScreen(V3ContactDetail, { contact })}
                         className="flex items-center gap-4 p-4 hover:bg-stone-50 cursor-pointer border-l-2 border-transparent hover:border-teal-500 transition-all group"
                     >
-                        <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 font-bold text-sm shrink-0">
-                            {client.avatar || client.name.charAt(0)}
+                        <div className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0",
+                            contact.avatarColor || "bg-stone-100 text-stone-500"
+                        )}>
+                            {contact.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-stone-900 truncate">{client.name}</div>
+                            <div className="font-semibold text-stone-900 truncate">{contact.name}</div>
                             <div className="flex items-center gap-2 text-xs text-stone-500">
                                 <span className={cn(
                                     "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase",
-                                    client.type === 'Practitioner' ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-600"
+                                    contact.type === 'Practitioner' ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-600"
                                 )}>
-                                    {client.type || 'Client'}
+                                    {contact.type}
                                 </span>
                                 <span>•</span>
-                                <span>{client.status || 'Active'}</span>
+                                <span>{contact.status}</span>
                             </div>
                         </div>
                         <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-stone-500" />
@@ -84,3 +83,4 @@ export default function V3ContactList({ onCloseSlider }) {
         </div>
     );
 }
+
