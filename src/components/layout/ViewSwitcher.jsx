@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
@@ -17,13 +17,13 @@ export default function ViewSwitcher() {
 
   const { data: practitioners = [] } = useQuery({
     queryKey: ['practitioners-view'],
-    queryFn: () => base44.entities.Practitioner.filter({ isActive: true }),
+    queryFn: () => api.entities.Practitioner.filter({ isActive: true }),
     enabled: currentView === 'practitioner'
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients-view'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
     enabled: currentView === 'client'
   });
 

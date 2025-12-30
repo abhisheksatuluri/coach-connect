@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ export default function MyNotesTab({ selectedNoteId, onNoteSelect }) {
 
   React.useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -93,7 +93,7 @@ export default function MyNotesTab({ selectedNoteId, onNoteSelect }) {
     queryKey: ['notes', 'my-notes', currentView, currentUser?.email],
     queryFn: async () => {
       // Fetch all notes - we'll filter on the client side
-      const notes = await base44.entities.Note.list();
+      const notes = await api.entities.Note.list();
       // Filter for My Notes: noteType is "My Note" OR no noteType and no links
       return notes.filter(note => 
         note.noteType === 'My Note' || 
@@ -112,7 +112,7 @@ export default function MyNotesTab({ selectedNoteId, onNoteSelect }) {
   const sortedNotes = [...notes].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 
   const createMutation = useMutation({
-    mutationFn: (content) => base44.entities.Note.create({ 
+    mutationFn: (content) => api.entities.Note.create({ 
       content, 
       noteType: 'My Note',
       createdByRole: currentView

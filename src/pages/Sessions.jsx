@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle } from "lucide-react"; // Added CheckCircle import
@@ -13,19 +13,19 @@ export default function Sessions() {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [user, setUser] = useState(null); // Added user state
-  
+
   const queryClient = useQueryClient();
 
   // Added useEffect for user loading
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error('Error loading user:', error);
         // Optionally handle unauthenticated state, e.g., redirect to login
-        setUser(null); 
+        setUser(null);
       }
     };
     loadUser();
@@ -33,26 +33,26 @@ export default function Sessions() {
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list('-date_time'),
+    queryFn: () => api.entities.Session.list('-date_time'),
     enabled: !!user, // Only run query if user is loaded
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
     enabled: !!user, // Only run query if user is loaded
   });
 
   const updateSessionMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const updatedSession = await base44.entities.Session.update(id, data);
-      
+      const updatedSession = await api.entities.Session.update(id, data);
+
       // Update client timestamp for cache invalidation
       if (updatedSession.client_id || data.client_id) {
         const clientId = updatedSession.client_id || data.client_id;
-        await base44.entities.Client.update(clientId, {}).catch(() => {});
+        await api.entities.Client.update(clientId, {}).catch(() => { });
       }
-      
+
       return updatedSession;
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export default function Sessions() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: (id) => base44.entities.Session.delete(id),
+    mutationFn: (id) => api.entities.Session.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
@@ -129,7 +129,7 @@ export default function Sessions() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2">🎉 Google Meet Integration Active!</h3>
                   <p className="text-sm text-gray-700">
-                    When you create a session, a Google Calendar event is automatically created with a Meet link, 
+                    When you create a session, a Google Calendar event is automatically created with a Meet link,
                     and your client receives an email invitation. Just click "Start a Session" to get started!
                   </p>
                 </div>

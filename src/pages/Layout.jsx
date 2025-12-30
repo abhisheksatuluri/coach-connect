@@ -390,7 +390,7 @@ export default function Layout({ children, currentPageName }) {
   }, [user]);
 
   const handleLogout = () => {
-    // base44.auth.logout();
+    // api.auth.logout();
     console.log("Mock logout");
     window.location.reload();
   };

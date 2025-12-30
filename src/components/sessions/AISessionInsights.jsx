@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,20 +43,20 @@ export default function AISessionInsights({ sessionId, clientId }) {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   // Check for existing applied references
   const { data: existingReferences = [] } = useQuery({
     queryKey: ['appliedReferences', sessionId],
-    queryFn: () => base44.entities.AppliedReference.filter({ session_id: sessionId }),
+    queryFn: () => api.entities.AppliedReference.filter({ session_id: sessionId }),
     enabled: !!sessionId,
   });
 
   // Check for existing recommendations
   const { data: existingRecommendations = [] } = useQuery({
     queryKey: ['clientRecommendations', sessionId],
-    queryFn: () => base44.entities.ClientRecommendation.filter({ session_id: sessionId }),
+    queryFn: () => api.entities.ClientRecommendation.filter({ session_id: sessionId }),
     enabled: !!sessionId,
   });
 
@@ -76,7 +76,7 @@ export default function AISessionInsights({ sessionId, clientId }) {
 
   const generateAnalysisMutation = useMutation({
     mutationFn: async () => {
-      const response = await base44.functions.invoke('generateSessionAnalysis', {
+      const response = await api.functions.invoke('generateSessionAnalysis', {
         session_id: sessionId
       });
       
@@ -93,7 +93,7 @@ export default function AISessionInsights({ sessionId, clientId }) {
 
   const applyReferenceMutation = useMutation({
     mutationFn: async ({ kbId, matchType, matchReason }) => {
-      return await base44.entities.AppliedReference.create({
+      return await api.entities.AppliedReference.create({
         client_id: clientId,
         session_id: sessionId,
         knowledge_base_id: kbId,
@@ -111,7 +111,7 @@ export default function AISessionInsights({ sessionId, clientId }) {
 
   const addRecommendationMutation = useMutation({
     mutationFn: async (recommendation) => {
-      return await base44.entities.ClientRecommendation.create({
+      return await api.entities.ClientRecommendation.create({
         client_id: clientId,
         session_id: sessionId,
         recommendation_text: recommendation.text,

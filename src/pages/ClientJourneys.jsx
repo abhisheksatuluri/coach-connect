@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  MapIcon, 
-  CheckCircle, 
+import {
+  MapIcon,
+  CheckCircle,
   Circle,
-  Calendar, 
-  Loader2, 
+  Calendar,
+  Loader2,
   AlertCircle,
   ChevronRight,
   Play,
@@ -37,30 +37,30 @@ export default function ClientJourneysPage() {
 
   const { data: client } = useQuery({
     queryKey: ['client', clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    queryFn: () => api.entities.Client.filter({ id: clientId }),
     enabled: !!clientId,
     select: (data) => data[0]
   });
 
   const { data: clientJourneys = [], isLoading } = useQuery({
     queryKey: ['client-journeys', clientId],
-    queryFn: () => base44.entities.ClientJourney.filter({ client_id: clientId }),
+    queryFn: () => api.entities.ClientJourney.filter({ client_id: clientId }),
     enabled: !!clientId
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journey-steps'],
-    queryFn: () => base44.entities.JourneyStep.list(),
+    queryFn: () => api.entities.JourneyStep.list(),
   });
 
   const { data: clientJourneySteps = [] } = useQuery({
     queryKey: ['client-journey-steps'],
-    queryFn: () => base44.entities.ClientJourneyStep.list(),
+    queryFn: () => api.entities.ClientJourneyStep.list(),
   });
 
   const journeyMap = Object.fromEntries(journeys.map(j => [j.id, j]));
@@ -71,11 +71,11 @@ export default function ClientJourneysPage() {
     const steps = journeySteps
       .filter(s => s.journey_id === clientJourney.journey_id)
       .sort((a, b) => a.order_number - b.order_number);
-    
+
     const stepStatuses = clientJourneySteps.filter(
       cjs => cjs.client_journey_id === clientJourney.id
     );
-    
+
     const stepStatusMap = Object.fromEntries(
       stepStatuses.map(s => [s.journey_step_id, s])
     );
@@ -153,20 +153,18 @@ export default function ClientJourneysPage() {
               const isComplete = data.percentage === 100;
 
               return (
-                <Card 
-                  key={clientJourney.id} 
-                  className={`bg-white hover:shadow-md transition-shadow cursor-pointer ${
-                    isComplete ? 'border-emerald-200 bg-gradient-to-r from-emerald-50/50 to-white' : ''
-                  }`}
+                <Card
+                  key={clientJourney.id}
+                  className={`bg-white hover:shadow-md transition-shadow cursor-pointer ${isComplete ? 'border-emerald-200 bg-gradient-to-r from-emerald-50/50 to-white' : ''
+                    }`}
                   onClick={() => setSelectedJourney(clientJourney)}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            isComplete ? 'bg-emerald-100' : 'bg-purple-100'
-                          }`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isComplete ? 'bg-emerald-100' : 'bg-purple-100'
+                            }`}>
                             {isComplete ? (
                               <Trophy className="w-6 h-6 text-emerald-600" />
                             ) : (
@@ -219,7 +217,7 @@ export default function ClientJourneysPage() {
         )}
 
         {/* Journey Detail Modal */}
-        <JourneyDetailModal 
+        <JourneyDetailModal
           clientJourney={selectedJourney}
           journeyData={selectedJourney ? getJourneyData(selectedJourney) : null}
           onClose={() => setSelectedJourney(null)}
@@ -318,20 +316,17 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                   <div key={step.id} className="relative">
                     {/* Connector Line */}
                     {index < steps.length - 1 && (
-                      <div className={`absolute left-5 top-12 w-0.5 h-full -ml-px ${
-                        completed ? 'bg-emerald-300' : 'bg-gray-200'
-                      }`} />
+                      <div className={`absolute left-5 top-12 w-0.5 h-full -ml-px ${completed ? 'bg-emerald-300' : 'bg-gray-200'
+                        }`} />
                     )}
 
-                    <div className={`relative flex gap-4 p-4 rounded-xl transition-all ${
-                      isCurrent ? 'bg-purple-50 border-2 border-purple-200' :
+                    <div className={`relative flex gap-4 p-4 rounded-xl transition-all ${isCurrent ? 'bg-purple-50 border-2 border-purple-200' :
                       completed ? 'bg-emerald-50/50' : 'bg-gray-50/50'
-                    }`}>
-                      {/* Step Indicator */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                        completed ? 'bg-emerald-500' :
-                        isCurrent ? 'bg-purple-500' : 'bg-gray-300'
                       }`}>
+                      {/* Step Indicator */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${completed ? 'bg-emerald-500' :
+                        isCurrent ? 'bg-purple-500' : 'bg-gray-300'
+                        }`}>
                         {completed ? (
                           <CheckCircle className="w-5 h-5 text-white" />
                         ) : (
@@ -343,10 +338,9 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h5 className={`font-medium ${
-                              completed ? 'text-emerald-700' :
+                            <h5 className={`font-medium ${completed ? 'text-emerald-700' :
                               isCurrent ? 'text-purple-900' : 'text-gray-600'
-                            }`}>
+                              }`}>
                               {step.title}
                             </h5>
                             <div className="flex items-center gap-2 mt-1">
@@ -361,7 +355,7 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                               )}
                             </div>
                           </div>
-                          
+
                           {completed && (
                             <Badge className="bg-emerald-100 text-emerald-700 shrink-0">
                               <CheckCircle className="w-3 h-3 mr-1" />
@@ -377,9 +371,8 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                         </div>
 
                         {step.description && (
-                          <p className={`text-sm mt-2 ${
-                            isUpcoming ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
+                          <p className={`text-sm mt-2 ${isUpcoming ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
                             {step.description}
                           </p>
                         )}
@@ -388,8 +381,8 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                         {(step.video_url || step.audio_url) && !isUpcoming && (
                           <div className="flex gap-2 mt-3">
                             {step.video_url && (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="outline"
                                 className="gap-1"
                                 onClick={(e) => {
@@ -402,8 +395,8 @@ function JourneyDetailModal({ clientJourney, journeyData, onClose }) {
                               </Button>
                             )}
                             {step.audio_url && (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="outline"
                                 className="gap-1"
                                 onClick={(e) => {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Package, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function LinkPackageModal({ journey, packages, isOpen, onClose }) {
@@ -16,12 +16,12 @@ export default function LinkPackageModal({ journey, packages, isOpen, onClose })
   const linkPackageMutation = useMutation({
     mutationFn: async () => {
       // Update journey with linked package
-      await base44.entities.Journey.update(journey.id, {
+      await api.entities.Journey.update(journey.id, {
         linkedPackage_id: selectedPackageId
       });
 
       // Also update the package to reference this journey
-      await base44.entities.Package.update(selectedPackageId, {
+      await api.entities.Package.update(selectedPackageId, {
         journey_id: journey.id
       });
     },

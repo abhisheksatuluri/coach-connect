@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, List, Eye, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 
 import JourneyDetailModal from "./JourneyDetailModal";
 
@@ -25,7 +25,7 @@ export default function JourneyTemplateGrid({ templates, journeySteps, clients, 
   // Fetch packages to show linked package info
   const { data: packages = [] } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
   });
 
   const getStepCount = (journeyId) => {

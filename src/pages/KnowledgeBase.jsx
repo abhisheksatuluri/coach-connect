@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
+import {
   BookOpen, Search, X, Tag, Eye, Calendar, FileText, Filter
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,13 +22,13 @@ export default function KnowledgeBasePage() {
 
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['knowledgeBase'],
-    queryFn: () => base44.entities.KnowledgeBase.list('-created_date'),
+    queryFn: () => api.entities.KnowledgeBase.list('-created_date'),
   });
 
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -72,7 +72,7 @@ export default function KnowledgeBasePage() {
   const handleArticleClick = (article) => {
     setSelectedArticle(article);
     // Increment view count
-    base44.entities.KnowledgeBase.update(article.id, {
+    api.entities.KnowledgeBase.update(article.id, {
       view_count: (article.view_count || 0) + 1
     });
   };
@@ -168,9 +168,9 @@ export default function KnowledgeBasePage() {
               <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No knowledge base articles found</h3>
               <p className="text-gray-600">
-                {searchQuery || categoryFilter !== "All" 
+                {searchQuery || categoryFilter !== "All"
                   ? "Try adjusting your filters or search query."
-                  : isPractitioner 
+                  : isPractitioner
                     ? "No knowledge base articles available yet."
                     : "Add your first article to get started."}
               </p>
@@ -185,7 +185,7 @@ export default function KnowledgeBasePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card 
+                <Card
                   className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer h-full"
                   onClick={() => handleArticleClick(article)}
                 >
@@ -205,7 +205,7 @@ export default function KnowledgeBasePage() {
                     <p className="text-sm text-gray-600 line-clamp-3 mb-4">
                       {article.summary || article.content?.substring(0, 100) + '...'}
                     </p>
-                    
+
                     {/* Tags */}
                     {article.tags && (
                       <div className="flex flex-wrap gap-1 mb-3">
@@ -272,7 +272,7 @@ export default function KnowledgeBasePage() {
                       {selectedArticle.category}
                     </Badge>
                     <h2 className="text-2xl font-bold mb-2">{selectedArticle.title}</h2>
-                    
+
                     {/* Tags */}
                     {selectedArticle.tags && (
                       <div className="flex flex-wrap gap-2 mb-2">

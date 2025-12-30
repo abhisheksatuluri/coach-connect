@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,7 @@ export default function TaskCard({
   // Fetch client's active journey
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys', task.client_id],
-    queryFn: () => base44.entities.ClientJourney.filter({ 
+    queryFn: () => api.entities.ClientJourney.filter({ 
       client_id: task.client_id,
       status: "Active"
     }),
@@ -71,7 +71,7 @@ export default function TaskCard({
   const activeJourney = clientJourneys[0];
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journey-steps', activeJourney?.journey_id],
-    queryFn: () => base44.entities.JourneyStep.filter({ 
+    queryFn: () => api.entities.JourneyStep.filter({ 
       journey_id: activeJourney?.journey_id 
     }),
     enabled: !!activeJourney?.journey_id
@@ -81,7 +81,7 @@ export default function TaskCard({
   const { data: upcomingSessions = [] } = useQuery({
     queryKey: ['upcoming-sessions', task.client_id],
     queryFn: async () => {
-      const sessions = await base44.entities.Session.filter({ 
+      const sessions = await api.entities.Session.filter({ 
         client_id: task.client_id 
       });
       const now = new Date();
@@ -108,7 +108,7 @@ export default function TaskCard({
     try {
       const maxOrder = journeySteps.reduce((max, step) => Math.max(max, step.order_number || 0), 0);
       
-      const newStep = await base44.entities.JourneyStep.create({
+      const newStep = await api.entities.JourneyStep.create({
         journey_id: activeJourney.journey_id,
         order_number: maxOrder + 1,
         title: task.title,
@@ -118,7 +118,7 @@ export default function TaskCard({
         is_active: true
       });
 
-      await base44.entities.ClientJourneyStep.create({
+      await api.entities.ClientJourneyStep.create({
         client_journey_id: activeJourney.id,
         journey_step_id: newStep.id,
         status: 'Not Started'
@@ -160,7 +160,7 @@ export default function TaskCard({
       const taskNote = `\n\n--- Task from AI Analysis ---\n${task.title}${task.description ? `\n${task.description}` : ''}`;
       const existingNotes = nextSession.preSessionNotes || '';
       
-      await base44.entities.Session.update(nextSession.id, {
+      await api.entities.Session.update(nextSession.id, {
         preSessionNotes: existingNotes + taskNote
       });
 
@@ -201,7 +201,7 @@ export default function TaskCard({
       const clientId = task.client_id || session?.client_id;
       if (clientId) {
         try {
-          fullClient = await base44.entities.Client.get(clientId);
+          fullClient = await api.entities.Client.get(clientId);
           console.log('Fetched client for email:', fullClient);
         } catch (err) {
           console.error('Failed to fetch client:', err);

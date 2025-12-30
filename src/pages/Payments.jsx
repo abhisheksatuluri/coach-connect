@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,32 +90,32 @@ export default function PaymentsPage() {
   // Fetch all payment data
   const { data: paymentLinks = [], isLoading: linksLoading } = useQuery({
     queryKey: ['payment-links'],
-    queryFn: () => base44.entities.PaymentLink.list(),
+    queryFn: () => api.entities.PaymentLink.list(),
   });
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list(),
+    queryFn: () => api.entities.Invoice.list(),
   });
 
   const { data: paymentRecords = [], isLoading: recordsLoading } = useQuery({
     queryKey: ['payment-records'],
-    queryFn: () => base44.entities.PaymentRecord.list(),
+    queryFn: () => api.entities.PaymentRecord.list(),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: packages = [], isLoading: packagesLoading } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]));
@@ -134,7 +134,7 @@ export default function PaymentsPage() {
 
   const activeLinks = paymentLinks.filter(l => l.status === 'active').length;
 
-  const thisMonthInvoices = invoices.filter(i => 
+  const thisMonthInvoices = invoices.filter(i =>
     i.sent_at && new Date(i.sent_at) >= startOfMonth
   ).length;
 
@@ -178,178 +178,178 @@ export default function PaymentsPage() {
           invoices={invoices}
         />
       )}
-      
+
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <CreditCard className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold text-gray-900">Payments</h1>
-            </div>
-            <p className="text-gray-600 ml-15">Manage payment links, invoices, and track payments</p>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
-              <Plus className="w-4 h-4" /> Payment Link
-            </Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2">
-              <Plus className="w-4 h-4" /> New Invoice
-            </Button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 bg-white/60 backdrop-blur-sm">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="payment-links">Payment Links</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="packages">Packages</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <>
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard
-                    title="Total Revenue"
-                    value={formatCurrency(thisMonthRevenue)}
-                    subtitle="This month"
-                    icon={TrendingUp}
-                    accentColor="bg-gradient-to-br from-green-500 to-emerald-600"
-                  />
-                  <StatCard
-                    title="Outstanding"
-                    value={formatCurrency(outstanding)}
-                    subtitle="Awaiting payment"
-                    icon={AlertCircle}
-                    accentColor="bg-gradient-to-br from-orange-500 to-amber-600"
-                  />
-                  <StatCard
-                    title="Active Payment Links"
-                    value={activeLinks}
-                    subtitle="Currently active"
-                    icon={LinkIcon}
-                    accentColor="bg-gradient-to-br from-blue-500 to-indigo-600"
-                  />
-                  <StatCard
-                    title="Invoices Sent"
-                    value={thisMonthInvoices}
-                    subtitle="This month"
-                    icon={FileText}
-                    accentColor="bg-gradient-to-br from-purple-500 to-pink-600"
-                  />
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <CreditCard className="w-6 h-6 text-white" />
                 </div>
+                <h1 className="text-4xl font-bold text-gray-900">Payments</h1>
+              </div>
+              <p className="text-gray-600 ml-15">Manage payment links, invoices, and track payments</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="gap-2">
+                <Plus className="w-4 h-4" /> Payment Link
+              </Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2">
+                <Plus className="w-4 h-4" /> New Invoice
+              </Button>
+            </div>
+          </div>
 
-                {/* Recent Activity */}
-                <Card className="bg-white shadow-sm rounded-lg">
-                  <CardHeader className="border-b border-gray-100">
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Recent Activity</span>
-                      <Button variant="ghost" size="sm" className="text-emerald-600">
-                        View All <ArrowRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {recentActivity.length === 0 ? (
-                      <div className="py-12 text-center text-gray-500">
-                        <Receipt className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No recent activity</p>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-gray-100">
-                        {recentActivity.map((activity, idx) => (
-                          <ActivityItem
-                            key={idx}
-                            icon={activity.icon}
-                            description={activity.description}
-                            client={activity.client}
-                            amount={activity.amount}
-                            date={activity.date}
-                            status={activity.status}
-                            iconColor={activity.iconColor}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6 bg-white/60 backdrop-blur-sm">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="payment-links">Payment Links</TabsTrigger>
+              <TabsTrigger value="invoices">Invoices</TabsTrigger>
+              <TabsTrigger value="packages">Packages</TabsTrigger>
+            </TabsList>
 
-                {/* Quick Actions */}
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <QuickActionCard
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard
+                      title="Total Revenue"
+                      value={formatCurrency(thisMonthRevenue)}
+                      subtitle="This month"
+                      icon={TrendingUp}
+                      accentColor="bg-gradient-to-br from-green-500 to-emerald-600"
+                    />
+                    <StatCard
+                      title="Outstanding"
+                      value={formatCurrency(outstanding)}
+                      subtitle="Awaiting payment"
+                      icon={AlertCircle}
+                      accentColor="bg-gradient-to-br from-orange-500 to-amber-600"
+                    />
+                    <StatCard
+                      title="Active Payment Links"
+                      value={activeLinks}
+                      subtitle="Currently active"
                       icon={LinkIcon}
-                      title="Create Payment Link"
-                      description="Generate a secure payment link to send to clients"
-                      onClick={() => setActiveTab('payment-links')}
+                      accentColor="bg-gradient-to-br from-blue-500 to-indigo-600"
                     />
-                    <QuickActionCard
+                    <StatCard
+                      title="Invoices Sent"
+                      value={thisMonthInvoices}
+                      subtitle="This month"
                       icon={FileText}
-                      title="Generate Invoice"
-                      description="Create and send professional invoices to clients"
-                      onClick={() => setActiveTab('invoices')}
-                    />
-                    <QuickActionCard
-                      icon={DollarSign}
-                      title="Send Package Link"
-                      description="Quick-send payment link for a package"
-                      onClick={() => setActiveTab('packages')}
-                    />
-                    <QuickActionCard
-                      icon={Receipt}
-                      title="Record Payment"
-                      description="Manually log payments received offline"
-                      onClick={() => setShowRecordPayment(true)}
+                      accentColor="bg-gradient-to-br from-purple-500 to-pink-600"
                     />
                   </div>
-                </div>
-              </>
-            )}
-          </TabsContent>
 
-          {/* Payment Links Tab */}
-          <TabsContent value="payment-links">
-            <PaymentLinksTab
-              paymentLinks={paymentLinks}
-              clients={clients}
-              packages={packages}
-              invoices={invoices}
-              isLoading={linksLoading}
-            />
-          </TabsContent>
+                  {/* Recent Activity */}
+                  <Card className="bg-white shadow-sm rounded-lg">
+                    <CardHeader className="border-b border-gray-100">
+                      <CardTitle className="flex items-center justify-between">
+                        <span>Recent Activity</span>
+                        <Button variant="ghost" size="sm" className="text-emerald-600">
+                          View All <ArrowRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {recentActivity.length === 0 ? (
+                        <div className="py-12 text-center text-gray-500">
+                          <Receipt className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>No recent activity</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-100">
+                          {recentActivity.map((activity, idx) => (
+                            <ActivityItem
+                              key={idx}
+                              icon={activity.icon}
+                              description={activity.description}
+                              client={activity.client}
+                              amount={activity.amount}
+                              date={activity.date}
+                              status={activity.status}
+                              iconColor={activity.iconColor}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-          {/* Invoices Tab */}
-          <TabsContent value="invoices">
-            <InvoicesTab
-              invoices={invoices}
-              clients={clients}
-              isLoading={invoicesLoading}
-            />
-          </TabsContent>
+                  {/* Quick Actions */}
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <QuickActionCard
+                        icon={LinkIcon}
+                        title="Create Payment Link"
+                        description="Generate a secure payment link to send to clients"
+                        onClick={() => setActiveTab('payment-links')}
+                      />
+                      <QuickActionCard
+                        icon={FileText}
+                        title="Generate Invoice"
+                        description="Create and send professional invoices to clients"
+                        onClick={() => setActiveTab('invoices')}
+                      />
+                      <QuickActionCard
+                        icon={DollarSign}
+                        title="Send Package Link"
+                        description="Quick-send payment link for a package"
+                        onClick={() => setActiveTab('packages')}
+                      />
+                      <QuickActionCard
+                        icon={Receipt}
+                        title="Record Payment"
+                        description="Manually log payments received offline"
+                        onClick={() => setShowRecordPayment(true)}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </TabsContent>
 
-          {/* Packages Tab */}
-          <TabsContent value="packages">
-            <PackagesTab
-              packages={packages}
-              journeys={journeys}
-              clients={clients}
-              isLoading={packagesLoading}
-            />
-          </TabsContent>
-        </Tabs>
+            {/* Payment Links Tab */}
+            <TabsContent value="payment-links">
+              <PaymentLinksTab
+                paymentLinks={paymentLinks}
+                clients={clients}
+                packages={packages}
+                invoices={invoices}
+                isLoading={linksLoading}
+              />
+            </TabsContent>
+
+            {/* Invoices Tab */}
+            <TabsContent value="invoices">
+              <InvoicesTab
+                invoices={invoices}
+                clients={clients}
+                isLoading={invoicesLoading}
+              />
+            </TabsContent>
+
+            {/* Packages Tab */}
+            <TabsContent value="packages">
+              <PackagesTab
+                packages={packages}
+                journeys={journeys}
+                clients={clients}
+                isLoading={packagesLoading}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>

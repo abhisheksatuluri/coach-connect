@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,31 +29,31 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
     enabled: isOpen
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
     enabled: isOpen
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list(),
+    queryFn: () => api.entities.Session.list(),
     enabled: isOpen
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list(),
+    queryFn: () => api.entities.ClientJourney.list(),
     enabled: isOpen
   });
 
   const { data: actions = [] } = useQuery({
     queryKey: ['actions'],
-    queryFn: () => base44.entities.Action.list(),
+    queryFn: () => api.entities.Action.list(),
     enabled: isOpen
   });
 
@@ -71,7 +71,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
     queryKey: ['notes-slider', viewContext.currentView, viewContext.practitionerId, viewContext.clientId, currentUser?.email],
     queryFn: async () => {
       // Fetch notes based on current view and enforce privacy
-      const allUserNotes = await base44.entities.Note.list('-created_date', 50);
+      const allUserNotes = await api.entities.Note.list('-created_date', 50);
       return allUserNotes;
     },
     enabled: isOpen && !!currentUser
@@ -114,7 +114,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
       // Priority 1: Session context
       if (sessionId) {
-        const session = await base44.entities.Session.filter({ id: sessionId }).then(r => r[0]);
+        const session = await api.entities.Session.filter({ id: sessionId }).then(r => r[0]);
         if (session) {
           setContextLabel(`Notes for ${session.title}`);
           setContextFilter({ type: 'session', id: sessionId });
@@ -127,8 +127,8 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
       // Priority 2: Client Journey context (specific journey instance)
       if (clientJourneyId) {
-        const clientJourney = await base44.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
-        const journey = clientJourney ? await base44.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
+        const clientJourney = await api.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
+        const journey = clientJourney ? await api.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
         if (journey) {
           setContextLabel(`Notes for ${journey.title}`);
           setContextFilter({ type: 'journey', id: clientJourneyId });
@@ -141,7 +141,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
       // Priority 3: Journey template context
       if (journeyId) {
-        const journey = await base44.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
+        const journey = await api.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
         if (journey) {
           setContextLabel(`Notes for ${journey.title}`);
           setContextFilter({ type: 'journey', id: journeyId });
@@ -153,7 +153,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
       // Priority 4: Client context (only if no other specific context)
       if (clientId) {
-        const client = await base44.entities.Client.filter({ id: clientId }).then(r => r[0]);
+        const client = await api.entities.Client.filter({ id: clientId }).then(r => r[0]);
         if (client) {
           setContextLabel(`Notes for ${client.full_name}`);
           setContextFilter({ type: 'client', id: clientId });
@@ -194,7 +194,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
         // Priority 1: Session context
         if (sessionId) {
-          const session = await base44.entities.Session.filter({ id: sessionId }).then(r => r[0]);
+          const session = await api.entities.Session.filter({ id: sessionId }).then(r => r[0]);
           if (session) {
             setContextLabel(`Notes for ${session.title}`);
             setContextFilter({ type: 'session', id: sessionId });
@@ -207,8 +207,8 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
         // Priority 2: Client Journey context (specific journey instance)
         if (clientJourneyId) {
-          const clientJourney = await base44.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
-          const journey = clientJourney ? await base44.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
+          const clientJourney = await api.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
+          const journey = clientJourney ? await api.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
           if (journey) {
             setContextLabel(`Notes for ${journey.title}`);
             setContextFilter({ type: 'journey', id: clientJourneyId });
@@ -221,7 +221,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
         // Priority 3: Journey template context
         if (journeyId) {
-          const journey = await base44.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
+          const journey = await api.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
           if (journey) {
             setContextLabel(`Notes for ${journey.title}`);
             setContextFilter({ type: 'journey', id: journeyId });
@@ -233,7 +233,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
         // Priority 4: Client context (only if no other specific context)
         if (clientId) {
-          const client = await base44.entities.Client.filter({ id: clientId }).then(r => r[0]);
+          const client = await api.entities.Client.filter({ id: clientId }).then(r => r[0]);
           if (client) {
             setContextLabel(`Notes for ${client.full_name}`);
             setContextFilter({ type: 'client', id: clientId });
@@ -288,17 +288,17 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const note = await base44.entities.Note.create(data);
+      const note = await api.entities.Note.create(data);
       
       // Update parent entity timestamps for cache invalidation
       if (data.linkedClient) {
-        await base44.entities.Client.update(data.linkedClient, {}).catch(() => {});
+        await api.entities.Client.update(data.linkedClient, {}).catch(() => {});
       }
       if (data.linkedSession) {
-        await base44.entities.Session.update(data.linkedSession, {}).catch(() => {});
+        await api.entities.Session.update(data.linkedSession, {}).catch(() => {});
       }
       if (data.linkedJourney) {
-        await base44.entities.ClientJourney.update(data.linkedJourney, {}).catch(() => {});
+        await api.entities.ClientJourney.update(data.linkedJourney, {}).catch(() => {});
       }
       
       return note;
@@ -312,17 +312,17 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const updatedNote = await base44.entities.Note.update(id, data);
+      const updatedNote = await api.entities.Note.update(id, data);
       
       // Update parent entity timestamps for cache invalidation
       if (data.linkedClient) {
-        await base44.entities.Client.update(data.linkedClient, {}).catch(() => {});
+        await api.entities.Client.update(data.linkedClient, {}).catch(() => {});
       }
       if (data.linkedSession) {
-        await base44.entities.Session.update(data.linkedSession, {}).catch(() => {});
+        await api.entities.Session.update(data.linkedSession, {}).catch(() => {});
       }
       if (data.linkedJourney) {
-        await base44.entities.ClientJourney.update(data.linkedJourney, {}).catch(() => {});
+        await api.entities.ClientJourney.update(data.linkedJourney, {}).catch(() => {});
       }
       
       return updatedNote;
@@ -334,7 +334,7 @@ export default function NotesSlider({ isOpen, onClose, currentPageName }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Note.delete(id),
+    mutationFn: (id) => api.entities.Note.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes-slider'] })
   });
 

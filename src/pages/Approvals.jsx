@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export default function ApprovalsPage() {
   const [practitionerId, setPractitionerId] = useState(null);
   const [responseNotes, setResponseNotes] = useState({});
   const [processingId, setProcessingId] = useState(null);
-  
+
   // Filters
   const [clientFilter, setClientFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -32,28 +32,28 @@ export default function ApprovalsPage() {
 
   const { data: approvalRequests = [], isLoading } = useQuery({
     queryKey: ['approvalRequests', practitionerId],
-    queryFn: () => base44.entities.ApprovalRequest.filter({ practitioner_id: practitionerId }),
+    queryFn: () => api.entities.ApprovalRequest.filter({ practitioner_id: practitionerId }),
     enabled: !!practitionerId
   });
 
   const { data: actions = [] } = useQuery({
     queryKey: ['actions'],
-    queryFn: () => base44.entities.Action.list(),
+    queryFn: () => api.entities.Action.list(),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const { data: practitioner } = useQuery({
     queryKey: ['practitioner', practitionerId],
-    queryFn: () => base44.entities.Practitioner.get(practitionerId),
+    queryFn: () => api.entities.Practitioner.get(practitionerId),
     enabled: !!practitionerId
   });
 
@@ -62,14 +62,14 @@ export default function ApprovalsPage() {
   const userMap = Object.fromEntries(users.map(u => [u.id, u]));
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ApprovalRequest.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.ApprovalRequest.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approvalRequests'] });
     }
   });
 
   const updateActionMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Action.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Action.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
     }
@@ -79,9 +79,9 @@ export default function ApprovalsPage() {
     const action = actionMap[request.action_id];
     const client = action ? clientMap[action.client_id] : null;
     const coach = userMap[request.requestedBy];
-    
+
     if (coach?.email) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: coach.email,
         subject: `Approval ${decision}: ${action?.title || 'Action'}`,
         body: `
@@ -111,7 +111,7 @@ HealthCoach System
         responseNotes: responseNotes[request.id] || ''
       }
     });
-    
+
     if (request.action_id) {
       await updateActionMutation.mutateAsync({
         id: request.action_id,
@@ -134,7 +134,7 @@ HealthCoach System
         responseNotes: responseNotes[request.id] || ''
       }
     });
-    
+
     if (request.action_id) {
       await updateActionMutation.mutateAsync({
         id: request.action_id,
@@ -152,33 +152,33 @@ HealthCoach System
     return requests.filter(request => {
       const action = actionMap[request.action_id];
       const clientId = action?.client_id;
-      
+
       // Client filter
       if (clientFilter !== "all" && clientId !== clientFilter) return false;
-      
+
       // Date filters
       const requestDate = new Date(request.requestedAt || request.created_date);
       if (dateFrom && isBefore(requestDate, startOfDay(new Date(dateFrom)))) return false;
       if (dateTo && isAfter(requestDate, endOfDay(new Date(dateTo)))) return false;
-      
+
       return true;
     });
   };
 
   const filterHistoryRequests = (requests) => {
     let filtered = filterRequests(requests);
-    
+
     // Status filter for history tab
     if (statusFilter !== "all") {
       filtered = filtered.filter(r => r.status === statusFilter);
     }
-    
+
     return filtered;
   };
 
   const pendingRequests = filterRequests(approvalRequests.filter(r => r.status === 'Pending'))
     .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-  
+
   const completedRequests = filterHistoryRequests(approvalRequests.filter(r => r.status !== 'Pending'))
     .sort((a, b) => new Date(b.respondedAt || b.updated_date) - new Date(a.respondedAt || a.updated_date));
 
@@ -211,7 +211,7 @@ HealthCoach System
         <Filter className="w-4 h-4 text-gray-500" />
         <span className="text-sm text-gray-600 font-medium">Filters:</span>
       </div>
-      
+
       <Select value={clientFilter} onValueChange={setClientFilter}>
         <SelectTrigger className="w-[180px] h-9 bg-white">
           <SelectValue placeholder="All Clients" />
@@ -259,8 +259,8 @@ HealthCoach System
       </div>
 
       {(clientFilter !== "all" || statusFilter !== "all" || dateFrom || dateTo) && (
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={() => {
             setClientFilter("all");
@@ -316,7 +316,7 @@ HealthCoach System
               <p className="text-sm text-gray-700">{action.description}</p>
             </div>
           )}
-          
+
           {action?.sourceContext && (
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <p className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
@@ -331,11 +331,10 @@ HealthCoach System
               <Badge variant="outline" className="bg-white">{action.actionType}</Badge>
             )}
             {action?.priority && (
-              <Badge variant="outline" className={`bg-white ${
-                action.priority === 'High' ? 'border-red-300 text-red-700' :
+              <Badge variant="outline" className={`bg-white ${action.priority === 'High' ? 'border-red-300 text-red-700' :
                 action.priority === 'Medium' ? 'border-amber-300 text-amber-700' :
-                'border-gray-300 text-gray-600'
-              }`}>
+                  'border-gray-300 text-gray-600'
+                }`}>
                 {action.priority} Priority
               </Badge>
             )}
@@ -468,7 +467,7 @@ HealthCoach System
 
           <TabsContent value="pending">
             <FilterBar showStatusFilter={false} />
-            
+
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-400" />

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -27,7 +27,7 @@ export default function NewChatModal({
 
   const createConversationMutation = useMutation({
     mutationFn: async ({ participant2Email, participant2Role }) => {
-      return await base44.entities.Conversation.create({
+      return await api.entities.Conversation.create({
         participant1: currentUserEmail,
         participant1Role: currentView,
         participant2: participant2Email,

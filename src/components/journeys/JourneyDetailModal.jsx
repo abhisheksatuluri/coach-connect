@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ export default function JourneyDetailModal({ journey, journeySteps, clients, isA
   // Fetch packages to get linked package info
   const { data: packages = [] } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
   });
 
   const linkedPackage = journey?.linkedPackage_id 
@@ -62,19 +62,19 @@ export default function JourneyDetailModal({ journey, journeySteps, clients, isA
   const assignToClientMutation = useMutation({
     mutationFn: async (clientId) => {
       // Create ClientJourney
-      const clientJourney = await base44.entities.ClientJourney.create({
+      const clientJourney = await api.entities.ClientJourney.create({
         client_id: clientId,
         journey_id: journey.id,
         status: 'Active',
         started_at: new Date().toISOString(),
         progress_percentage: 0,
         current_step_number: 1,
-        assigned_by: (await base44.auth.me()).email
+        assigned_by: (await api.auth.me()).email
       });
 
       // Create all ClientJourneyStep records
       const stepPromises = sortedSteps.map(step =>
-        base44.entities.ClientJourneyStep.create({
+        api.entities.ClientJourneyStep.create({
           client_journey_id: clientJourney.id,
           journey_step_id: step.id,
           status: 'Not Started'

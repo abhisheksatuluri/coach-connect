@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  FileText, 
+import {
+  FileText,
   Plus,
   Upload,
-  Download, 
-  Trash2, 
+  Download,
+  Trash2,
   Edit2,
   Search,
   FileImage,
@@ -76,7 +76,7 @@ export default function FilesPage() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -84,32 +84,32 @@ export default function FilesPage() {
 
   const { data: allFiles = [], isLoading } = useQuery({
     queryKey: ['files-page', currentView],
-    queryFn: () => base44.entities.File.list('-created_date', 500),
+    queryFn: () => api.entities.File.list('-created_date', 500),
     enabled: !!currentUser
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list()
+    queryFn: () => api.entities.Client.list()
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list()
+    queryFn: () => api.entities.Session.list()
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list()
+    queryFn: () => api.entities.ClientJourney.list()
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list()
+    queryFn: () => api.entities.Journey.list()
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.File.delete(id),
+    mutationFn: (id) => api.entities.File.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files-page'] });
       alert('File deleted');
@@ -117,7 +117,7 @@ export default function FilesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.File.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.File.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files-page'] });
       setEditingFileId(null);
@@ -129,21 +129,21 @@ export default function FilesPage() {
   const accessibleFiles = allFiles.filter(file => {
     if (file.created_by === currentUser?.email) return true;
     if (file.isPrivate) return false;
-    
+
     if (file.sharedWithRoles) {
       try {
         const sharedRoles = JSON.parse(file.sharedWithRoles);
         if (sharedRoles.includes(currentView)) return true;
-      } catch (e) {}
+      } catch (e) { }
     }
-    
+
     if (file.sharedWithUsers) {
       try {
         const sharedUsers = JSON.parse(file.sharedWithUsers);
         if (sharedUsers.includes(currentUser?.email)) return true;
-      } catch (e) {}
+      } catch (e) { }
     }
-    
+
     return false;
   });
 
@@ -167,7 +167,7 @@ export default function FilesPage() {
   }
 
   if (searchQuery.trim()) {
-    filteredFiles = filteredFiles.filter(f => 
+    filteredFiles = filteredFiles.filter(f =>
       f.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (f.description && f.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
@@ -197,19 +197,19 @@ export default function FilesPage() {
 
   const handleUpload = async () => {
     if (!selectedFile || !currentUser) return;
-    
+
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
-      
+      const { file_url } = await api.integrations.Core.UploadFile({ file: selectedFile });
+
       const sharedRoles = [];
       if (!isPrivate) {
         if (shareWithCoach) sharedRoles.push('coach');
         if (shareWithPractitioner) sharedRoles.push('practitioner');
         if (shareWithClient) sharedRoles.push('client');
       }
-      
-      await base44.entities.File.create({
+
+      await api.entities.File.create({
         fileName: selectedFile.name,
         fileUrl: file_url,
         fileType: selectedFile.type,
@@ -223,7 +223,7 @@ export default function FilesPage() {
         sharedWithRoles: sharedRoles.length > 0 ? JSON.stringify(sharedRoles) : null,
         sharedWithUsers: null
       });
-      
+
       resetUploadForm();
       queryClient.invalidateQueries({ queryKey: ['files-page'] });
     } catch (error) {
@@ -261,7 +261,7 @@ export default function FilesPage() {
     setEditingFileId(file.id);
     setEditDescription(file.description || "");
     setEditIsPrivate(file.isPrivate ?? true);
-    
+
     try {
       const sharedRoles = file.sharedWithRoles ? JSON.parse(file.sharedWithRoles) : [];
       setEditShareWithCoach(sharedRoles.includes('coach'));
@@ -317,7 +317,7 @@ export default function FilesPage() {
     return null;
   };
 
-  const filteredSessions = sessions.filter(s => 
+  const filteredSessions = sessions.filter(s =>
     !selectedClient || s.client_id === selectedClient
   );
 
@@ -330,7 +330,7 @@ export default function FilesPage() {
             <Paperclip className="w-8 h-8 text-emerald-600" />
             <h1 className="text-3xl font-bold text-gray-900">Files & Resources</h1>
           </div>
-          <Button 
+          <Button
             onClick={() => setShowUploadForm(true)}
             className="bg-gradient-to-r from-emerald-500 to-teal-600"
             disabled={showUploadForm}
@@ -456,9 +456,9 @@ export default function FilesPage() {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="upload-private" 
-                    checked={isPrivate} 
+                  <Checkbox
+                    id="upload-private"
+                    checked={isPrivate}
                     onCheckedChange={setIsPrivate}
                   />
                   <label htmlFor="upload-private" className="text-sm font-medium cursor-pointer">
@@ -470,9 +470,9 @@ export default function FilesPage() {
                   <div className="pl-6 space-y-2">
                     <p className="text-sm text-gray-600 mb-2">Share with:</p>
                     <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="upload-share-coach" 
-                        checked={shareWithCoach} 
+                      <Checkbox
+                        id="upload-share-coach"
+                        checked={shareWithCoach}
                         onCheckedChange={setShareWithCoach}
                       />
                       <label htmlFor="upload-share-coach" className="text-sm cursor-pointer">
@@ -480,9 +480,9 @@ export default function FilesPage() {
                       </label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="upload-share-practitioner" 
-                        checked={shareWithPractitioner} 
+                      <Checkbox
+                        id="upload-share-practitioner"
+                        checked={shareWithPractitioner}
                         onCheckedChange={setShareWithPractitioner}
                       />
                       <label htmlFor="upload-share-practitioner" className="text-sm cursor-pointer">
@@ -490,9 +490,9 @@ export default function FilesPage() {
                       </label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="upload-share-client" 
-                        checked={shareWithClient} 
+                      <Checkbox
+                        id="upload-share-client"
+                        checked={shareWithClient}
                         onCheckedChange={setShareWithClient}
                       />
                       <label htmlFor="upload-share-client" className="text-sm cursor-pointer">
@@ -504,15 +504,15 @@ export default function FilesPage() {
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={resetUploadForm}
                   disabled={isUploading}
                 >
                   <X className="w-4 h-4 mr-1" />
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleUpload}
                   disabled={!selectedFile || isUploading}
                   className="bg-emerald-600 hover:bg-emerald-700"
@@ -600,7 +600,7 @@ export default function FilesPage() {
                 {searchQuery ? 'No files match your search' : 'No files yet'}
               </p>
               {!searchQuery && (
-                <Button 
+                <Button
                   onClick={() => setShowUploadForm(true)}
                   variant="outline"
                   className="mt-4"
@@ -628,7 +628,7 @@ export default function FilesPage() {
                         </div>
                         <h4 className="font-medium text-gray-900">{file.fileName}</h4>
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium text-gray-700 mb-1 block">
                           Description
@@ -722,7 +722,7 @@ export default function FilesPage() {
               }
 
               return (
-                <Card 
+                <Card
                   key={file.id}
                   className="bg-white/90 backdrop-blur-sm border-0 shadow hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => handleDownload(file)}

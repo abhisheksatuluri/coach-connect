@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -58,7 +58,7 @@ export default function PaymentLinkFormModal({ isOpen, onClose, clients, presele
   // Fetch packages
   const { data: packages = [] } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
     enabled: isOpen
   });
 
@@ -86,7 +86,7 @@ export default function PaymentLinkFormModal({ isOpen, onClose, clients, presele
         linkData.packageName = data.packageName;
       }
       
-      return base44.entities.PaymentLink.create(linkData);
+      return api.entities.PaymentLink.create(linkData);
     },
     onSuccess: (newLink) => {
       queryClient.invalidateQueries({ queryKey: ['payment-links'] });

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,12 +42,12 @@ export default function TasksPage() {
   // Left column filters (Recommended Actions)
   const [leftClientFilter, setLeftClientFilter] = useState("all");
   const [leftTypeFilter, setLeftTypeFilter] = useState("all");
-  
+
   // Right column filters (Tasks)
   const [rightObjectTypeFilter, setRightObjectTypeFilter] = useState("all"); // all, personal, client, session, journey
   const [rightSpecificObjectFilter, setRightSpecificObjectFilter] = useState("all");
   const [rightTypeFilter, setRightTypeFilter] = useState("all");
-  
+
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDismissed, setShowDismissed] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -61,44 +61,44 @@ export default function TasksPage() {
 
   const { data: actions = [], isLoading } = useQuery({
     queryKey: ['actions'],
-    queryFn: () => base44.entities.Action.list('-createdAt'),
+    queryFn: () => api.entities.Action.list('-createdAt'),
   });
 
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryFn: () => api.entities.Task.list('-created_date'),
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list(),
+    queryFn: () => api.entities.Session.list(),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list(),
+    queryFn: () => api.entities.ClientJourney.list(),
   });
 
   // Fetch approval requests for pending/rejected actions
   const { data: approvalRequests = [] } = useQuery({
     queryKey: ['approval-requests'],
-    queryFn: () => base44.entities.ApprovalRequest.list('-requestedAt'),
+    queryFn: () => api.entities.ApprovalRequest.list('-requestedAt'),
   });
 
   // Fetch practitioners for displaying who the request was sent to
   const { data: practitioners = [] } = useQuery({
     queryKey: ['practitioners'],
-    queryFn: () => base44.entities.Practitioner.list(),
+    queryFn: () => api.entities.Practitioner.list(),
   });
 
   // Helper to get the latest approval request for an action
@@ -115,7 +115,7 @@ export default function TasksPage() {
   };
 
   const updateActionMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Action.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Action.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
     },
@@ -128,14 +128,14 @@ export default function TasksPage() {
       const client = clients.find(c => c.id === action.client_id);
       if (client) return client;
     }
-    
+
     // Fallback: get client from the linked session
     const session = sessions.find(s => s.id === action.session_id);
     if (session?.client_id) {
       const client = clients.find(c => c.id === session.client_id);
       if (client) return client;
     }
-    
+
     return null;
   };
 
@@ -178,14 +178,14 @@ export default function TasksPage() {
     .filter(a => showDismissed ? true : !a.isDismissed)
     .filter(a => leftClientFilter === "all" || a.client_id === leftClientFilter)
     .filter(a => leftTypeFilter === "all" || a.actionType === leftTypeFilter);
-  
+
   const dismissedCount = actions.filter(a => !a.isApplied && a.isDismissed).length;
 
   // Get recent sessions for filter (last 30 days or last 20 sessions)
   const recentSessions = React.useMemo(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     return sessions
       .filter(s => !s.date_time || new Date(s.date_time) >= thirtyDaysAgo)
       .slice(0, 20)
@@ -234,7 +234,7 @@ export default function TasksPage() {
       // Incomplete tasks first
       if (a.status === 'done' && b.status !== 'done') return 1;
       if (a.status !== 'done' && b.status === 'done') return -1;
-      
+
       // Then by due date (nulls last)
       if (a.due_date && !b.due_date) return -1;
       if (!a.due_date && b.due_date) return 1;
@@ -242,7 +242,7 @@ export default function TasksPage() {
         const dateCompare = new Date(a.due_date) - new Date(b.due_date);
         if (dateCompare !== 0) return dateCompare;
       }
-      
+
       // Finally by created date descending
       return new Date(b.created_date) - new Date(a.created_date);
     });
@@ -251,7 +251,7 @@ export default function TasksPage() {
   const appliedActions = actions.filter(a => a.isApplied);
 
   const groupedRecommended = groupByClient(recommendedActions);
-  
+
   // Get context info for a task
   const getTaskContext = (task) => {
     if (task.session_id) {
@@ -294,7 +294,7 @@ export default function TasksPage() {
       setPractitionerModalAction(action);
       return;
     }
-    
+
     // Otherwise, accept directly
     updateActionMutation.mutate({
       id: action.id,
@@ -349,14 +349,14 @@ export default function TasksPage() {
   // Handle resending approval request
   const handleResendApproval = async (action, approvalRequest) => {
     if (!approvalRequest) return;
-    
+
     setResendingActionId(action.id);
     try {
       await base44.functions.invoke('sendApprovalRequestEmail', {
         actionId: action.id,
         practitionerId: approvalRequest.practitioner_id
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['approval-requests'] });
       toast({
         title: "Approval request resent",
@@ -377,7 +377,7 @@ export default function TasksPage() {
   // Handle cancelling approval request
   const handleCancelApproval = async (action, approvalRequest) => {
     if (!approvalRequest) return;
-    
+
     setCancellingActionId(action.id);
     try {
       // Update approval request status to cancelled
@@ -385,15 +385,15 @@ export default function TasksPage() {
         status: 'Rejected',
         responseNotes: 'Cancelled by coach'
       });
-      
+
       // Reset action approval status
       await base44.entities.Action.update(action.id, {
         approvalStatus: 'Not Required'
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['approval-requests'] });
       queryClient.invalidateQueries({ queryKey: ['actions'] });
-      
+
       toast({
         title: "Approval request cancelled",
         duration: 2000,
@@ -540,7 +540,7 @@ export default function TasksPage() {
                   <p className="text-sm text-gray-400">Generate analysis from session transcripts</p>
                 </div>
               )}
-              
+
               {/* Show Dismissed Toggle */}
               {dismissedCount > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
@@ -567,8 +567,8 @@ export default function TasksPage() {
               <div className="flex flex-col gap-2 mt-3">
                 <div className="flex gap-2">
                   {/* First dropdown - Object Type */}
-                  <Select 
-                    value={rightObjectTypeFilter} 
+                  <Select
+                    value={rightObjectTypeFilter}
                     onValueChange={(value) => {
                       setRightObjectTypeFilter(value);
                       setRightSpecificObjectFilter("all");
@@ -667,7 +667,7 @@ export default function TasksPage() {
                     {filteredTasks.map((task, index) => {
                       const context = getTaskContext(task);
                       const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
-                      
+
                       return (
                         <motion.div
                           key={task.id}
@@ -675,9 +675,8 @@ export default function TasksPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ delay: index * 0.02 }}
-                          className={`p-4 rounded-lg border bg-white hover:shadow-md transition-shadow ${
-                            task.status === 'done' ? 'opacity-60' : ''
-                          } ${isOverdue ? 'border-red-300 bg-red-50/50' : 'border-gray-200'}`}
+                          className={`p-4 rounded-lg border bg-white hover:shadow-md transition-shadow ${task.status === 'done' ? 'opacity-60' : ''
+                            } ${isOverdue ? 'border-red-300 bg-red-50/50' : 'border-gray-200'}`}
                         >
                           <div className="flex items-start gap-3">
                             <button
@@ -696,7 +695,7 @@ export default function TasksPage() {
                                   {task.title}
                                 </h3>
                                 {task.priority && (
-                                  <Badge 
+                                  <Badge
                                     variant={task.priority === 'high' ? 'destructive' : 'outline'}
                                     className="text-xs"
                                   >
@@ -704,11 +703,11 @@ export default function TasksPage() {
                                   </Badge>
                                 )}
                               </div>
-                              
+
                               {task.description && (
                                 <p className="text-sm text-gray-600 mb-2">{task.description}</p>
                               )}
-                              
+
                               <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                                 {/* Context indicator */}
                                 <Badge variant="outline" className="bg-blue-50">
@@ -717,14 +716,14 @@ export default function TasksPage() {
                                 {context.sublabel && (
                                   <span className="text-gray-500">• {context.sublabel}</span>
                                 )}
-                                
+
                                 {task.assignee && (
                                   <span className="flex items-center gap-1">
                                     <User className="w-3 h-3" />
                                     {task.assignee}
                                   </span>
                                 )}
-                                
+
                                 {task.due_date && (
                                   <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 font-semibold' : ''}`}>
                                     <Calendar className="w-3 h-3" />

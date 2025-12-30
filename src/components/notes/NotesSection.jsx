@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export default function NotesSection({
   // Fetch current user
   useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -44,7 +44,7 @@ export default function NotesSection({
   // Fetch notes
   const { data: allNotes = [] } = useQuery({
     queryKey: ['notes', 'section', linkedClient, linkedSession, linkedJourney, currentView],
-    queryFn: () => base44.entities.Note.filter(noteFilter),
+    queryFn: () => api.entities.Note.filter(noteFilter),
     enabled: !!(linkedClient || linkedSession || linkedJourney)
   });
 
@@ -59,7 +59,7 @@ export default function NotesSection({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Note.delete(id),
+    mutationFn: (id) => api.entities.Note.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       alert('Note deleted');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export default function FilesSection({
 
   useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -83,7 +83,7 @@ export default function FilesSection({
   // Fetch files
   const { data: allFiles = [] } = useQuery({
     queryKey: ['files', 'section', linkedClient, linkedSession, linkedJourney],
-    queryFn: () => base44.entities.File.filter(fileFilter),
+    queryFn: () => api.entities.File.filter(fileFilter),
     enabled: !!(linkedClient || linkedSession || linkedJourney)
   });
 
@@ -124,7 +124,7 @@ export default function FilesSection({
   );
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.File.delete(id),
+    mutationFn: (id) => api.entities.File.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files'] });
       alert('File deleted');
@@ -132,7 +132,7 @@ export default function FilesSection({
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.File.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.File.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files'] });
       setEditingFileId(null);
@@ -153,7 +153,7 @@ export default function FilesSection({
     setIsUploading(true);
     try {
       // Upload file to storage
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      const { file_url } = await api.integrations.Core.UploadFile({ file: selectedFile });
       
       // Build shared roles array
       const sharedRoles = [];
@@ -164,7 +164,7 @@ export default function FilesSection({
       }
       
       // Create file record
-      await base44.entities.File.create({
+      await api.entities.File.create({
         fileName: selectedFile.name,
         fileUrl: file_url,
         fileType: selectedFile.type,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ export default function PractitionerSelectionModal({
   const { data: practitioners = [], isLoading } = useQuery({
     queryKey: ['practitioners', action.requiredSpecialty],
     queryFn: async () => {
-      const all = await base44.entities.Practitioner.filter({ 
+      const all = await api.entities.Practitioner.filter({ 
         isActive: true 
       });
       // Filter by specialty
@@ -39,7 +39,7 @@ export default function PractitionerSelectionModal({
   // Get current user for coachId
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me()
+    queryFn: () => api.auth.me()
   });
 
   const handleSendRequest = async () => {
@@ -49,7 +49,7 @@ export default function PractitionerSelectionModal({
     try {
       const selectedPractitioner = practitioners.find(p => p.id === selectedPractitionerId);
       
-      const response = await base44.functions.invoke('sendApprovalRequestEmail', {
+      const response = await api.functions.invoke('sendApprovalRequestEmail', {
         actionId: action.id,
         practitionerId: selectedPractitionerId,
         coachId: currentUser?.id

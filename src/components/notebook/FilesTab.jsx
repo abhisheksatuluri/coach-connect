@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export default function FilesTab() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -66,27 +66,27 @@ export default function FilesTab() {
 
   const { data: allFiles = [], isLoading } = useQuery({
     queryKey: ['files-notebook', currentView],
-    queryFn: () => base44.entities.File.list('-created_date', 200),
+    queryFn: () => api.entities.File.list('-created_date', 200),
     enabled: !!currentUser
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list()
+    queryFn: () => api.entities.Client.list()
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list()
+    queryFn: () => api.entities.Session.list()
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list()
+    queryFn: () => api.entities.ClientJourney.list()
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.File.delete(id),
+    mutationFn: (id) => api.entities.File.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files-notebook'] });
       alert('File deleted');
@@ -94,7 +94,7 @@ export default function FilesTab() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.File.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.File.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files-notebook'] });
       setEditingFileId(null);

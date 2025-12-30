@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ export default function JourneysPage() {
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -25,22 +25,22 @@ export default function JourneysPage() {
 
   const { data: journeyTemplates = [] } = useQuery({
     queryKey: ['journeyTemplates'],
-    queryFn: () => base44.entities.Journey.filter({ is_template: true }),
+    queryFn: () => api.entities.Journey.filter({ is_template: true }),
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['clientJourneys'],
-    queryFn: () => base44.entities.ClientJourney.list('-started_at'),
+    queryFn: () => api.entities.ClientJourney.list('-started_at'),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journeySteps'],
-    queryFn: () => base44.entities.JourneyStep.list('order_number'),
+    queryFn: () => api.entities.JourneyStep.list('order_number'),
   });
 
   const isAdmin = user?.role === 'admin';
@@ -80,7 +80,7 @@ export default function JourneysPage() {
           </TabsList>
 
           <TabsContent value="templates">
-            <JourneyTemplateGrid 
+            <JourneyTemplateGrid
               templates={journeyTemplates}
               journeySteps={journeySteps}
               clients={clients}

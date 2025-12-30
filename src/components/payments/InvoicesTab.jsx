@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -238,13 +238,13 @@ export default function InvoicesTab({ invoices, clients, isLoading }) {
   const handleSend = async (invoice) => {
     try {
       // Update invoice status to sent
-      await base44.entities.Invoice.update(invoice.id, {
+      await api.entities.Invoice.update(invoice.id, {
         status: 'sent',
         sent_at: new Date().toISOString()
       });
 
       // Check if payment link already exists for this invoice
-      const existingLinks = await base44.entities.PaymentLink.filter({ invoice_id: invoice.id });
+      const existingLinks = await api.entities.PaymentLink.filter({ invoice_id: invoice.id });
       
       if (existingLinks.length === 0) {
         // Calculate expiry date (30 days after due date)
@@ -260,7 +260,7 @@ export default function InvoicesTab({ invoices, clients, isLoading }) {
         }
 
         // Create payment link
-        const paymentLink = await base44.entities.PaymentLink.create({
+        const paymentLink = await api.entities.PaymentLink.create({
           linkType: "invoice",
           invoice_id: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
@@ -275,7 +275,7 @@ export default function InvoicesTab({ invoices, clients, isLoading }) {
         });
 
         // Update invoice with payment link reference
-        await base44.entities.Invoice.update(invoice.id, {
+        await api.entities.Invoice.update(invoice.id, {
           paymentLink_id: paymentLink.id
         });
       }

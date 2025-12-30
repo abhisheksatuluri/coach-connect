@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,7 @@ export default function ClientNotesTab({ selectedNoteId, onNoteSelect }) {
 
   React.useEffect(() => {
     const loadUser = async () => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       setCurrentUser(user);
     };
     loadUser();
@@ -119,14 +119,14 @@ export default function ClientNotesTab({ selectedNoteId, onNoteSelect }) {
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: allNotes = [], isLoading } = useQuery({
     queryKey: ['notes', 'client-notes', currentView, currentUser?.email],
     queryFn: async () => {
       // Fetch all notes - we'll filter on the client side
-      const notes = await base44.entities.Note.list();
+      const notes = await api.entities.Note.list();
       // Filter for Client Notes: noteType is "Client Note" OR has linkedClient set
       return notes.filter(note => 
         note.noteType === 'Client Note' || 
@@ -161,7 +161,7 @@ export default function ClientNotesTab({ selectedNoteId, onNoteSelect }) {
   const createMutation = useMutation({
     mutationFn: (data) => {
       console.log('[ClientNotesTab] Creating note with data:', data);
-      return base44.entities.Note.create({ 
+      return api.entities.Note.create({ 
         ...data, 
         noteType: 'Client Note',
         createdByRole: currentView,
@@ -178,7 +178,7 @@ export default function ClientNotesTab({ selectedNoteId, onNoteSelect }) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Note.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Note.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       setEditingNote(null);
@@ -186,7 +186,7 @@ export default function ClientNotesTab({ selectedNoteId, onNoteSelect }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Note.delete(id),
+    mutationFn: (id) => api.entities.Note.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes'] })
   });
 

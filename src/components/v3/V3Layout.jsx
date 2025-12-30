@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { cn } from "@/lib/utils";
 import V3Header from './V3Header';
 import V3BottomNav from './V3BottomNav';
@@ -12,11 +12,14 @@ import { useNavigate } from 'react-router-dom';
 import PersistentLightningIcon from './widgets/PersistentLightningIcon';
 
 // --- PREMIUM ANIMATION CONSTANTS ---
-const SPRING_MAIN = { type: "spring", stiffness: 280, damping: 26, mass: 1 }; // Responsive but smooth
-const SPRING_SETTLE = { type: "spring", stiffness: 400, damping: 30, mass: 1 }; // Quicker settle
+// Polished spring physics for that "layered" feel
+const SPRING_MAIN = { type: "spring", stiffness: 280, damping: 26, mass: 1 };
+const SPRING_TIGHT = { type: "spring", stiffness: 350, damping: 30, mass: 1 }; // Snappier for desktop if needed
+const SPRING_SETTLE = { type: "spring", stiffness: 400, damping: 30, mass: 1 }; // Quick settlement
+
 const DRAG_THRESHOLDS = {
-    cancel: 150, // px to drag before dismiss
-    velocity: 500 // velocity to dismiss
+    cancel: 120, // Reduced slightly for better responsiveness
+    velocity: 400
 };
 
 // --- ANIMATION PHASES & VARIANTS ---
@@ -32,14 +35,14 @@ const backgroundVariants = {
         transition: { ...SPRING_MAIN }
     },
     inactive: (index) => ({
-        scale: 0.94 - (index * 0.04), // 0.94, 0.90, etc.
-        x: -30 + (index * -10), // -30px, -40px
-        opacity: 0.6 - (index * 0.1), // Dimmer as it goes back
-        filter: "blur(6px)", // Blur for depth
+        scale: 0.94 - (index * 0.04), // 0.94, 0.90
+        x: -20 + (index * -8), // Subtle shift left
+        opacity: 0.6 - (index * 0.1), // Dimming
+        filter: "blur(4px)", // Progressive blur
         borderRadius: "16px",
         transition: {
             ...SPRING_MAIN,
-            delay: 0.02 // Tiny delay to let foreground start moving first (Anticipation phase overlap)
+            delay: 0.02 // Anticipation phase: background reacts slightly before foreground
         }
     })
 };
@@ -48,39 +51,42 @@ const backgroundVariants = {
 const screenVariants = {
     initial: {
         x: "100%",
-        scale: 1.02, // Start slightly larger (Anticipation/Enter)
-        boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+        scale: 1.02, // Start slightly zoomed in (Anticipation)
+        boxShadow: "0 0 0px rgba(0,0,0,0)",
+        opacity: 1
     },
     animate: {
         x: 0,
         scale: 1,
-        boxShadow: "-5px 10px 40px rgba(0,0,0,0.18)", // Final shadow
+        boxShadow: "-10px 0px 50px rgba(0,0,0,0.2)", // Deep shadow
+        opacity: 1,
         transition: {
-            x: { ...SPRING_MAIN, delay: 0.08 }, // 80ms Anticipation delay before sliding in
-            scale: { ...SPRING_SETTLE, delay: 0.28 }, // Settle scale slightly later
+            x: { ...SPRING_MAIN, delay: 0.05 }, // Slide in after tiny delay
+            scale: { ...SPRING_SETTLE, delay: 0.25 }, // Settle scale later
             boxShadow: { duration: 0.4 }
         }
     },
     exit: {
         x: "100%",
-        scale: 1.01, // Lift off slightly on exit
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        scale: 1.01, // Lift effect on exit
+        boxShadow: "0 0 20px rgba(0,0,0,0.05)",
         transition: { ...SPRING_MAIN }
     }
 };
 
-// Content Stagger (Fade in after screen lands)
+// Content Stagger (Fade in parts after screen lands)
 const contentStaggerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
         opacity: 1,
+        y: 0,
         transition: {
-            delay: 0.35, // 350ms - wait for screen to land
-            duration: 0.1
+            delay: 0.3, // Wait for slide-in
+            duration: 0.2,
+            ease: "easeOut"
         }
     }
 };
-
 
 function V3LayoutContent({ children, title, showBack = false, initialActiveTab = 'dashboard', showHeader = true }) {
     const [activeTab, setActiveTab] = useState(initialActiveTab);
@@ -99,141 +105,151 @@ function V3LayoutContent({ children, title, showBack = false, initialActiveTab =
         }
 
         // If clicking the already active tab, clear the stack (pop to root)
-        if (id === activeTab) {
-            if (!isRootActive && clearStack) {
-                clearStack();
-            }
+        if (id === activeTab && !isRootActive) {
+            clearStack();
             return;
         }
 
         if (id === 'dashboard') {
             setActiveTab('dashboard');
-            // navigate('/v3/dashboard'); 
+            if (!isRootActive) clearStack();
         } else {
             setActiveTab(id);
             if (['contacts', 'sessions', 'journeys', 'tasks', 'payments', 'notebook'].includes(id)) {
+                // If we are already on this tab but deep in stack, clear stack? 
+                // User requirement: "Sidebar reflects which main section... Content area Contact list slides in"
+                // Actually, if we navigate to /v3/contacts, we just want the base list.
                 navigate(`/v3/${id}`);
+                clearStack(); // Ensure we start fresh on the new section
             }
         }
     };
 
     return (
-        <div className="min-h-screen bg-black overflow-hidden relative selection:bg-teal-100 selection:text-teal-900">
+        <div className="min-h-screen bg-black overflow-hidden relative selection:bg-teal-100 selection:text-teal-900 flex">
+
             {/* --- PERSISTENT LIGHTNING ICON --- */}
+            {/* Adjusted z-index to stay above sidebar on mobile but respect layout on desktop involved? 
+                Actually, putting it here makes it global. */}
             <PersistentLightningIcon />
 
-            {/* --- ROOT VIEW CONTAINER (Layer 0) --- */}
-            {/* This is the "Base" page that gets pushed back when stack items appear */}
-            <motion.div
-                className="h-screen w-full bg-[#FAFAF9] text-[#1C1917] flex flex-col relative will-change-transform origin-center"
-                variants={backgroundVariants}
-                animate={isRootActive ? "active" : "inactive"}
-                custom={0} // Index 0 for background calculation
-                style={{ height: '100vh', touchAction: 'none' }} // Prevent browser swipe nav
-            >
-                {/* Top Header - Global */}
-                <div className={cn("md:pl-[240px] transition-all duration-200")}>
+            {/* --- SIDEBAR (Desktop Only) --- */}
+            {/* Fixed position, always visible on MD+ */}
+            {/* z-index 60 to sit above content but below modals if they were global, however stack is local now */}
+            <V3Sidebar
+                activeTab={activeTab}
+                onTabChange={handleNav}
+                className="hidden md:flex z-50"
+            />
+
+            {/* --- CONTENT AREA (The Stacking Context) --- */}
+            {/* Pushed right by 240px on Desktop */}
+            <div className="flex-1 h-screen relative flex flex-col md:ml-[240px] bg-black">
+
+                {/* --- ROOT VIEW CONTAINER (Base Layer) --- */}
+                <motion.div
+                    className="absolute inset-0 w-full h-full bg-[#FAFAF9] text-[#1C1917] flex flex-col will-change-transform origin-center overflow-hidden"
+                    variants={backgroundVariants}
+                    animate={isRootActive ? "active" : "inactive"}
+                    custom={0}
+                    style={{ touchAction: 'none' }} // Prevent browser swipe nav
+                >
+                    {/* Header */}
                     {showHeader && (
-                        <V3Header
-                            title={title}
-                            showBack={showBack}
-                            isWidgetActive={false} // Handled by persistent icon
+                        <div className="w-full">
+                            <V3Header
+                                title={title}
+                                showBack={showBack}
+                                isWidgetActive={false}
+                            />
+                        </div>
+                    )}
+
+                    {/* Main Content */}
+                    <main className={cn(
+                        "flex-1 overflow-hidden flex flex-col",
+                        showHeader ? "pt-16" : "pt-0",
+                        "pb-0 md:pb-0" // Clean bottom
+                    )}>
+                        <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col items-stretch h-full">
+                            {children}
+                        </div>
+                    </main>
+
+                    {/* Overlay for clicking back to focus (Dimming) */}
+                    {!isRootActive && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/10 z-40 cursor-pointer backdrop-blur-[1px]"
+                            onClick={() => popScreen()}
                         />
                     )}
-                </div>
+                </motion.div>
 
-                {/* Desktop Sidebar */}
-                <V3Sidebar activeTab={activeTab} onTabChange={handleNav} />
+                {/* --- STACKED SCREENS (Layers 1+) --- */}
+                {/* Contained within this div, so they don't cover the sidebar on desktop */}
+                <AnimatePresence mode='popLayout'>
+                    {stack.map((screen, index) => {
+                        const ScreenComponent = screen.component;
+                        const isTop = index === stack.length - 1;
+                        const depthIndex = stack.length - 1 - index;
 
-                {/* Main Content Area */}
-                <main className={cn(
-                    "flex-1 overflow-hidden md:pl-[240px] flex flex-col",
-                    showHeader ? "pt-16" : "pt-0",
-                    "pb-0 md:pb-8" // Remove default mobile bottom padding as lists handle it
-                )}>
-                    <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col items-stretch h-full">
-                        {children}
-                    </div>
-                </main>
+                        return (
+                            <motion.div
+                                key={screen.id}
+                                className="absolute inset-0 bg-white overflow-hidden shadow-2xl"
+                                style={{ zIndex: 50 + index }}
+                                variants={isTop ? screenVariants : backgroundVariants}
+                                initial={isTop ? "initial" : false}
+                                animate={isTop ? "animate" : "inactive"}
+                                exit="exit"
+                                custom={depthIndex}
+                                drag={isTop ? "x" : false}
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={{ left: 0.1, right: 0.7 }}
+                                onDragEnd={(e, { offset, velocity }) => {
+                                    if (offset.x > DRAG_THRESHOLDS.cancel || velocity.x > DRAG_THRESHOLDS.velocity) {
+                                        popScreen();
+                                    }
+                                }}
+                            >
+                                {/* Content Isolation */}
+                                <div className="absolute inset-0 w-full h-full overflow-hidden bg-[#FAFAF9] flex flex-col">
+                                    <motion.div
+                                        className="flex-1 w-full h-full flex flex-col"
+                                        variants={contentStaggerVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                    >
+                                        <ScreenComponent {...screen.props} />
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
+            </div>
 
-                {/* Overlay for clicking back to focus */}
-                {!isRootActive && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/5 z-40 cursor-pointer"
-                    // Optional: Tap backdrop to pop
-                    // onClick={() => popScreen()} 
-                    />
-                )}
-            </motion.div>
-
-            {/* --- STACKED SCREENS (Layer 1+) --- */}
-            <AnimatePresence mode='popLayout'>
-                {stack.map((screen, index) => {
-                    const ScreenComponent = screen.component;
-                    const isTop = index === stack.length - 1;
-                    const depthIndex = stack.length - 1 - index; // 0 for top, 1 for behind, etc.
-
-                    return (
-                        <motion.div
-                            key={screen.id}
-                            className="absolute inset-0 bg-white overflow-hidden will-change-transform shadow-2xl"
-
-                            // Stack Logic
-                            style={{ zIndex: 50 + index }}
-
-                            // If it's NOT the top screen, it behaves like a background card
-                            variants={isTop ? screenVariants : backgroundVariants}
-                            initial={isTop ? "initial" : false} // Only animate enter if it's the new top
-                            animate={isTop ? "animate" : "inactive"} // Top = animate in; Behind = inactive state
-                            exit="exit"
-                            custom={depthIndex} // Pass depth for background calc
-
-                            // Drag to Dismiss (Swipe Back)
-                            drag={isTop ? "x" : false} // Only top card is draggable
-                            dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={{ left: 0.1, right: 0.7 }}
-                            onDragEnd={(e, { offset, velocity }) => {
-                                if (offset.x > DRAG_THRESHOLDS.cancel || velocity.x > DRAG_THRESHOLDS.velocity) {
-                                    popScreen();
-                                }
-                            }}
-                        >
-                            {/* ISOLATION CONTAINER: Decouples animation transforms from internal layout */}
-                            {/* This div separates the transform layer from the content flow layer */}
-                            <div className="absolute inset-0 w-full h-full overflow-hidden bg-[#FAFAF9] flex flex-col">
-                                <motion.div
-                                    className="flex-1 w-full h-full flex flex-col"
-                                    variants={contentStaggerVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                >
-                                    <ScreenComponent {...screen.props} />
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </AnimatePresence>
-
-            {/* --- GLOBAL BOTTOM NAV (Layer 100) --- */}
-            {/* Always visible on mobile, sits above everything */}
+            {/* --- GLOBAL BOTTOM NAV (Mobile Only) --- */}
+            {/* Hidden on MD+ via `md:hidden` in component/className */}
             <V3BottomNav
                 activeTab={activeTab}
                 onTabChange={handleNav}
                 visible={true}
-                className="z-[100]"
+                className="z-[100] md:hidden"
             />
 
-            {/* --- BOTTOM SHEET WIDGET MENU --- */}
+            {/* --- WIDGET MENUS --- */}
+            {/* These are global overlays, so they CAN cover the sidebar if needed, 
+                but usually standard practice is centered or bottom sheet.
+                Current V3WidgetMenu is a bottom sheet. */}
             <V3WidgetMenu
                 isOpen={isWidgetMenuOpen}
                 onClose={() => setIsWidgetMenuOpen(false)}
             />
 
-            {/* --- MOCK MORE MENU --- */}
             <V3MoreMenu
                 isOpen={isMoreOpen}
                 onClose={() => setIsMoreOpen(false)}
@@ -251,4 +267,3 @@ export default function V3Layout(props) {
         </StackNavigationProvider>
     );
 }
-

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CLIENTS, SESSIONS } from "@/data/testData";
-// import { base44 } from "@/api/base44Client"; // Mocking for now
+// import api from '../api/api'; // Mocking for now
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Video, TrendingUp, Calendar } from "lucide-react";

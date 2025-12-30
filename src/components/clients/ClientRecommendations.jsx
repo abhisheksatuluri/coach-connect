@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,28 +50,28 @@ export default function ClientRecommendations({ client, sessions }) {
 
   const { data: recommendations = [] } = useQuery({
     queryKey: ['clientRecommendations', client.id],
-    queryFn: () => base44.entities.ClientRecommendation.filter({ client_id: client.id }),
+    queryFn: () => api.entities.ClientRecommendation.filter({ client_id: client.id }),
   });
 
   const { data: appliedReferences = [] } = useQuery({
     queryKey: ['appliedReferences', client.id],
-    queryFn: () => base44.entities.AppliedReference.filter({ client_id: client.id }),
+    queryFn: () => api.entities.AppliedReference.filter({ client_id: client.id }),
   });
 
   const { data: knowledgeBaseArticles = [] } = useQuery({
     queryKey: ['knowledgeBase'],
-    queryFn: () => base44.entities.KnowledgeBase.list(),
+    queryFn: () => api.entities.KnowledgeBase.list(),
   });
 
   const updateRecommendationMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ClientRecommendation.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.ClientRecommendation.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientRecommendations', client.id] });
     },
   });
 
   const deleteRecommendationMutation = useMutation({
-    mutationFn: (id) => base44.entities.ClientRecommendation.delete(id),
+    mutationFn: (id) => api.entities.ClientRecommendation.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientRecommendations', client.id] });
     },

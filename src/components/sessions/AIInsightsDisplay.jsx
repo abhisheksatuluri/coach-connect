@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,9 +68,9 @@ export default function AIInsightsDisplay({ insights, sessionId, clientId }) {
 
   const applyReferencesMutation = useMutation({
     mutationFn: async (references) => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       const promises = references.map(ref => 
-        base44.entities.AppliedReference.create({
+        api.entities.AppliedReference.create({
           client_id: clientId,
           session_id: sessionId,
           knowledge_base_id: ref.kb_id,
@@ -89,9 +89,9 @@ export default function AIInsightsDisplay({ insights, sessionId, clientId }) {
 
   const addRecommendationsMutation = useMutation({
     mutationFn: async (recommendations) => {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       const promises = recommendations.map(rec => 
-        base44.entities.ClientRecommendation.create({
+        api.entities.ClientRecommendation.create({
           client_id: clientId,
           session_id: sessionId,
           recommendation_text: rec.text,

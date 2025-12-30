@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { X, Loader2, Plus, Trash2, Package } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { generateInvoiceNumber } from "./invoiceUtils";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 
 export default function InvoiceFormModal({ isOpen, onClose, clients, existingInvoices, onSave }) {
@@ -33,7 +33,7 @@ export default function InvoiceFormModal({ isOpen, onClose, clients, existingInv
 
   const { data: packages = [] } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
   });
 
   // Generate next invoice number

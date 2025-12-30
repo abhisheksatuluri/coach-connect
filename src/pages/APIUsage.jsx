@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,44 +25,44 @@ export default function APIUsagePage() {
   // Fetch all API usage logs
   const { data: allLogs = [], isLoading } = useQuery({
     queryKey: ['apiUsageLogs'],
-    queryFn: () => base44.entities.APIUsageLog.list('-requestedAt', 1000),
+    queryFn: () => api.entities.APIUsageLog.list('-requestedAt', 1000),
   });
 
   // Fetch clients, sessions, journeys for display names
   const { data: clients = [] } = useQuery({
     queryKey: ['clients-api'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions-api'],
-    queryFn: () => base44.entities.Session.list(),
+    queryFn: () => api.entities.Session.list(),
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys-api'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['clientJourneys-api'],
-    queryFn: () => base44.entities.ClientJourney.list(),
+    queryFn: () => api.entities.ClientJourney.list(),
   });
 
   // Helper to get object name
   const getObjectName = (log) => {
     if (!log.objectId) return '-';
-    
+
     if (log.objectType === 'client') {
       const client = clients.find(c => c.id === log.objectId);
       return client?.full_name || 'Unknown Client';
     }
-    
+
     if (log.objectType === 'session') {
       const session = sessions.find(s => s.id === log.objectId);
       return session?.title || 'Unknown Session';
     }
-    
+
     if (log.objectType === 'journey') {
       const journey = journeys.find(j => j.id === log.objectId);
       if (journey) return journey.title;
@@ -73,7 +73,7 @@ export default function APIUsagePage() {
       }
       return 'Unknown Journey';
     }
-    
+
     return '-';
   };
 
@@ -84,13 +84,13 @@ export default function APIUsagePage() {
     const weekAgo = subDays(now, 7);
     const monthAgo = subDays(now, 30);
 
-    const todayLogs = allLogs.filter(log => 
+    const todayLogs = allLogs.filter(log =>
       new Date(log.requestedAt) >= todayStart
     );
-    const weekLogs = allLogs.filter(log => 
+    const weekLogs = allLogs.filter(log =>
       new Date(log.requestedAt) >= weekAgo
     );
-    const monthLogs = allLogs.filter(log => 
+    const monthLogs = allLogs.filter(log =>
       new Date(log.requestedAt) >= monthAgo
     );
 
@@ -114,7 +114,7 @@ export default function APIUsagePage() {
       const date = subDays(new Date(), i);
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
-      
+
       const dayLogs = allLogs.filter(log => {
         const logDate = new Date(log.requestedAt);
         return isWithinInterval(logDate, { start: dayStart, end: dayEnd });

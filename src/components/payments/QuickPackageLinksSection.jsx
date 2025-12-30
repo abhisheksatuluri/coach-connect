@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Package, Send, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -15,7 +15,7 @@ export default function QuickPackageLinksSection({ client }) {
 
   const { data: packages = [] } = useQuery({
     queryKey: ['packages'],
-    queryFn: () => base44.entities.Package.list(),
+    queryFn: () => api.entities.Package.list(),
   });
 
   // Show top 4 active packages, prioritize popular and non-custom
@@ -44,7 +44,7 @@ export default function QuickPackageLinksSection({ client }) {
       }
 
       // Create payment link
-      const paymentLink = await base44.entities.PaymentLink.create({
+      const paymentLink = await api.entities.PaymentLink.create({
         linkType: "package",
         package_id: pkg.id,
         packageName: pkg.name,

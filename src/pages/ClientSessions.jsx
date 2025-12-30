@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Video, 
-  Calendar, 
-  Clock, 
-  User, 
-  Play, 
-  FileText, 
-  Loader2, 
+import {
+  Video,
+  Calendar,
+  Clock,
+  User,
+  Play,
+  FileText,
+  Loader2,
   AlertCircle,
   ChevronRight,
   NotebookPen,
@@ -33,56 +33,56 @@ export default function ClientSessionsPage() {
 
   const { data: client } = useQuery({
     queryKey: ['client', clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    queryFn: () => api.entities.Client.filter({ id: clientId }),
     enabled: !!clientId,
     select: (data) => data[0]
   });
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['client-sessions', clientId],
-    queryFn: () => base44.entities.Session.filter({ client_id: clientId }),
+    queryFn: () => api.entities.Session.filter({ client_id: clientId }),
     enabled: !!clientId
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: allNotes = [] } = useQuery({
     queryKey: ['client-session-notes', clientId, currentUser?.email],
-    queryFn: () => base44.entities.Note.filter({ 
+    queryFn: () => api.entities.Note.filter({
       createdByRole: 'client'
     }),
     enabled: !!clientId && !!currentUser
   });
 
   // Filter notes - client can only see their own notes
-  const notes = allNotes.filter(note => 
+  const notes = allNotes.filter(note =>
     note.created_by === currentUser?.email
   );
 
   const userMap = Object.fromEntries(users.map(u => [u.email, u]));
-  
+
   // Get notes for a specific session
   const getSessionNotes = (sessionId) => {
     return notes.filter(n => n.linkedSession === sessionId);
   };
 
   // Sort sessions by date (newest first)
-  const sortedSessions = [...sessions].sort((a, b) => 
+  const sortedSessions = [...sessions].sort((a, b) =>
     new Date(b.date_time || b.created_date) - new Date(a.date_time || a.created_date)
   );
 
   const getStatusBadge = (session) => {
     const now = new Date();
     const sessionDate = session.date_time ? new Date(session.date_time) : null;
-    
+
     if (session.status === 'cancelled') {
       return <Badge className="bg-gray-100 text-gray-700">Cancelled</Badge>;
     }
@@ -154,8 +154,8 @@ export default function ClientSessionsPage() {
               const completed = isCompleted(session);
 
               return (
-                <Card 
-                  key={session.id} 
+                <Card
+                  key={session.id}
                   className="bg-white hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setSelectedSession(session)}
                 >
@@ -201,7 +201,7 @@ export default function ClientSessionsPage() {
 
                       <div className="flex flex-col items-end gap-2">
                         {getStatusBadge(session)}
-                        
+
                         <div className="flex items-center gap-2 mt-2">
                           {completed && session.recording_file_id && (
                             <Badge variant="outline" className="text-blue-600 border-blue-200 text-xs">
@@ -221,7 +221,7 @@ export default function ClientSessionsPage() {
         )}
 
         {/* Session Detail Modal */}
-        <SessionDetailModal 
+        <SessionDetailModal
           session={selectedSession}
           onClose={() => setSelectedSession(null)}
           coach={selectedSession?.coach_email ? userMap[selectedSession.coach_email] : null}
@@ -256,7 +256,7 @@ function SessionDetailModal({ session, onClose, coach, notes }) {
               <div>
                 <p className="text-sm text-gray-500">Date & Time</p>
                 <p className="font-medium text-gray-900">
-                  {session.date_time 
+                  {session.date_time
                     ? format(new Date(session.date_time), 'EEEE, MMMM d, yyyy \'at\' h:mm a')
                     : 'Not scheduled'
                   }
@@ -286,8 +286,8 @@ function SessionDetailModal({ session, onClose, coach, notes }) {
                 <Play className="w-4 h-4 text-blue-600" />
                 Session Recording
               </h4>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={() => {
                   // Open recording - this would need a function to get signed URL
@@ -306,7 +306,7 @@ function SessionDetailModal({ session, onClose, coach, notes }) {
               <NotebookPen className="w-4 h-4 text-purple-600" />
               My Notes
             </h4>
-            
+
             {notes.length === 0 ? (
               <div className="text-center py-6 bg-gray-50 rounded-lg">
                 <NotebookPen className="w-8 h-8 text-gray-300 mx-auto mb-2" />

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,18 +19,18 @@ export default function ClientChatSection({ clientId, clientEmail }) {
 
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
-    queryFn: () => base44.entities.Conversation.list(),
+    queryFn: () => api.entities.Conversation.list(),
     enabled: !!currentUser,
   });
 
   const { data: allMessages = [] } = useQuery({
     queryKey: ['messages'],
-    queryFn: () => base44.entities.Message.list('-created_date'),
+    queryFn: () => api.entities.Message.list('-created_date'),
     enabled: !!currentUser,
   });
 
@@ -55,7 +55,7 @@ export default function ClientChatSection({ clientId, clientEmail }) {
   // Create conversation mutation
   const createConversationMutation = useMutation({
     mutationFn: async () => {
-      return await base44.entities.Conversation.create({
+      return await api.entities.Conversation.create({
         participant1: currentUser.email,
         participant1Role: 'coach',
         participant2: clientEmail,
@@ -74,7 +74,7 @@ export default function ClientChatSection({ clientId, clientEmail }) {
     mutationFn: async (text) => {
       if (!conversation) return;
       
-      await base44.entities.Message.create({
+      await api.entities.Message.create({
         conversation_id: conversation.id,
         sender: currentUser.email,
         senderRole: 'coach',
@@ -82,7 +82,7 @@ export default function ClientChatSection({ clientId, clientEmail }) {
         isRead: false,
       });
       
-      await base44.entities.Conversation.update(conversation.id, {
+      await api.entities.Conversation.update(conversation.id, {
         lastMessageAt: new Date().toISOString(),
         lastMessagePreview: text.slice(0, 50),
       });

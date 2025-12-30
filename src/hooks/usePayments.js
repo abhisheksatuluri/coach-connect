@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 
 export function usePayments() {
     return useQuery({
         queryKey: ['payments'],
-        queryFn: () => base44.entities.Payment.list('-date'),
+        queryFn: () => api.entities.Payment.list('-date'),
     });
 }
 
 export function usePayment(id) {
     return useQuery({
         queryKey: ['payments', id],
-        queryFn: () => base44.entities.Payment.get(id),
+        queryFn: () => api.entities.Payment.get(id),
         enabled: !!id,
     });
 }
@@ -19,7 +19,7 @@ export function usePayment(id) {
 export function useCreatePayment() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data) => base44.entities.Payment.create(data),
+        mutationFn: (data) => api.entities.Payment.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['payments'] });
         },
@@ -29,7 +29,7 @@ export function useCreatePayment() {
 export function useUpdatePayment() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }) => base44.entities.Payment.update(id, data),
+        mutationFn: ({ id, data }) => api.entities.Payment.update(id, data),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['payments'] });
             queryClient.invalidateQueries({ queryKey: ['payments', variables.id] });
@@ -40,7 +40,7 @@ export function useUpdatePayment() {
 export function useDeletePayment() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => base44.entities.Payment.delete(id),
+        mutationFn: (id) => api.entities.Payment.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['payments'] });
         },

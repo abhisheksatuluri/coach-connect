@@ -2,7 +2,7 @@ import React from 'react';
 import { Home, Users, Calendar, Map, Grid, LogOut, Settings } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export default function V3Sidebar({ activeTab, onTabChange }) {
+export default function V3Sidebar({ activeTab, onTabChange, className }) {
     const navItems = [
         { id: 'dashboard', icon: Home, label: 'Home' },
         { id: 'contacts', icon: Users, label: 'Contacts' },
@@ -11,7 +11,10 @@ export default function V3Sidebar({ activeTab, onTabChange }) {
     ];
 
     return (
-        <div className="hidden md:flex flex-col w-[240px] fixed left-0 top-0 bottom-0 bg-white border-r border-stone-200 z-50 pt-16 pb-4">
+        <div className={cn(
+            "hidden md:flex flex-col w-[240px] fixed left-0 top-0 bottom-0 bg-white border-r border-stone-200 z-50 pt-16 pb-4",
+            className
+        )}>
             {/* Nav Items */}
             <div className="flex-1 px-3 py-6 space-y-1">
                 {navItems.map((item) => {

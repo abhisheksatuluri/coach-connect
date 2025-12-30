@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { X, Loader2, DollarSign } from "lucide-react";
 import { format } from "date-fns";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function RecordPaymentModal({ 
@@ -68,7 +68,7 @@ export default function RecordPaymentModal({
   const recordPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
       // Create payment record
-      const paymentRecord = await base44.entities.PaymentRecord.create({
+      const paymentRecord = await api.entities.PaymentRecord.create({
         client_id: paymentData.client_id,
         invoice_id: paymentData.invoice_id || null,
         paymentLink_id: paymentData.paymentLink_id || null,
@@ -94,11 +94,11 @@ export default function RecordPaymentModal({
           updates.status = 'paid';
         }
 
-        await base44.entities.Invoice.update(paymentData.invoice_id, updates);
+        await api.entities.Invoice.update(paymentData.invoice_id, updates);
 
         // Also update the linked payment link if it exists
         if (invoice?.paymentLink_id) {
-          await base44.entities.PaymentLink.update(invoice.paymentLink_id, {
+          await api.entities.PaymentLink.update(invoice.paymentLink_id, {
             status: 'paid',
             paid_at: new Date().toISOString()
           });
@@ -107,15 +107,15 @@ export default function RecordPaymentModal({
 
       // Update payment link if linked
       if (paymentData.paymentLink_id) {
-        await base44.entities.PaymentLink.update(paymentData.paymentLink_id, {
+        await api.entities.PaymentLink.update(paymentData.paymentLink_id, {
           status: 'paid',
           paid_at: new Date().toISOString()
         });
 
         // Also update the linked invoice if it exists
-        const paymentLink = prefilledPaymentLink || await base44.entities.PaymentLink.filter({ id: paymentData.paymentLink_id }).then(links => links[0]);
+        const paymentLink = prefilledPaymentLink || await api.entities.PaymentLink.filter({ id: paymentData.paymentLink_id }).then(links => links[0]);
         if (paymentLink?.invoice_id) {
-          await base44.entities.Invoice.update(paymentLink.invoice_id, {
+          await api.entities.Invoice.update(paymentLink.invoice_id, {
             status: 'paid',
             paid_at: new Date().toISOString()
           });

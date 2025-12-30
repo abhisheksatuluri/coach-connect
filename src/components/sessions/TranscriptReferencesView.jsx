@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +175,7 @@ export default function TranscriptReferencesView({ sessionId }) {
   // Fetch session
   const { data: session } = useQuery({
     queryKey: ['session', sessionId],
-    queryFn: () => base44.entities.Session.get(sessionId)
+    queryFn: () => api.entities.Session.get(sessionId)
   });
 
   // Fetch transcript and artifacts
@@ -187,7 +187,7 @@ export default function TranscriptReferencesView({ sessionId }) {
           setTranscript(session.edited_transcript);
         }
         
-        const response = await base44.functions.invoke('getSessionArtifactContent', {
+        const response = await api.functions.invoke('getSessionArtifactContent', {
           sessionId: sessionId
         });
         
@@ -206,25 +206,25 @@ export default function TranscriptReferencesView({ sessionId }) {
   // Fetch applied references
   const { data: appliedReferences = [] } = useQuery({
     queryKey: ['applied-references', sessionId],
-    queryFn: () => base44.entities.AppliedReference.filter({ session_id: sessionId })
+    queryFn: () => api.entities.AppliedReference.filter({ session_id: sessionId })
   });
 
   // Fetch KB articles
   const { data: kbArticles = [] } = useQuery({
     queryKey: ['kb-articles'],
-    queryFn: () => base44.entities.KnowledgeBase.list()
+    queryFn: () => api.entities.KnowledgeBase.list()
   });
 
   // Fetch actions
   const { data: actions = [] } = useQuery({
     queryKey: ['actions', sessionId],
-    queryFn: () => base44.entities.Action.filter({ session_id: sessionId })
+    queryFn: () => api.entities.Action.filter({ session_id: sessionId })
   });
 
   // Save transcript mutation
   const saveTranscriptMutation = useMutation({
     mutationFn: async (newTranscript) => {
-      return await base44.entities.Session.update(sessionId, {
+      return await api.entities.Session.update(sessionId, {
         edited_transcript: newTranscript
       });
     },
@@ -239,16 +239,16 @@ export default function TranscriptReferencesView({ sessionId }) {
   const generateReferencesMutation = useMutation({
     mutationFn: async () => {
       // First, delete existing references
-      const existingRefs = await base44.entities.AppliedReference.filter({ 
+      const existingRefs = await api.entities.AppliedReference.filter({ 
         session_id: sessionId 
       });
       
       await Promise.all(
-        existingRefs.map(ref => base44.entities.AppliedReference.delete(ref.id))
+        existingRefs.map(ref => api.entities.AppliedReference.delete(ref.id))
       );
       
       // Then generate new references
-      const response = await base44.functions.invoke('generateSessionAnalysis', {
+      const response = await api.functions.invoke('generateSessionAnalysis', {
         session_id: sessionId
       });
       
@@ -272,7 +272,7 @@ export default function TranscriptReferencesView({ sessionId }) {
 
   // Action mutations
   const updateActionMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Action.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Action.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions', sessionId] });
       setEditingAction(null);
@@ -280,14 +280,14 @@ export default function TranscriptReferencesView({ sessionId }) {
   });
 
   const deleteActionMutation = useMutation({
-    mutationFn: (id) => base44.entities.Action.delete(id),
+    mutationFn: (id) => api.entities.Action.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions', sessionId] });
     }
   });
 
   const createActionMutation = useMutation({
-    mutationFn: (data) => base44.entities.Action.create({
+    mutationFn: (data) => api.entities.Action.create({
       ...data,
       session_id: sessionId,
       isApplied: false,
@@ -345,7 +345,7 @@ export default function TranscriptReferencesView({ sessionId }) {
     
     setIsRegeneratingNotes(true);
     try {
-      const response = await base44.functions.invoke('generateSessionAnalysis', {
+      const response = await api.functions.invoke('generateSessionAnalysis', {
         session_id: sessionId
       });
       

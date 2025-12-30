@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,31 +55,31 @@ export default function JourneyProgressView({ clientJourney, client, journey, on
 
   const { data: clientJourneySteps = [] } = useQuery({
     queryKey: ['clientJourneySteps', clientJourney.id],
-    queryFn: () => base44.entities.ClientJourneyStep.filter({ client_journey_id: clientJourney.id }),
+    queryFn: () => api.entities.ClientJourneyStep.filter({ client_journey_id: clientJourney.id }),
   });
 
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journeySteps', journey?.id],
-    queryFn: () => base44.entities.JourneyStep.filter({ journey_id: journey.id }),
+    queryFn: () => api.entities.JourneyStep.filter({ journey_id: journey.id }),
     enabled: !!journey?.id
   });
 
   const markCompleteMutation = useMutation({
     mutationFn: async (clientJourneyStepId) => {
-      await base44.entities.ClientJourneyStep.update(clientJourneyStepId, {
+      await api.entities.ClientJourneyStep.update(clientJourneyStepId, {
         status: 'Completed',
         completed_at: new Date().toISOString()
       });
 
       // Calculate progress
-      const updatedSteps = await base44.entities.ClientJourneyStep.filter({ 
+      const updatedSteps = await api.entities.ClientJourneyStep.filter({ 
         client_journey_id: clientJourney.id 
       });
       const completedCount = updatedSteps.filter(s => s.status === 'Completed').length;
       const progressPercentage = Math.round((completedCount / updatedSteps.length) * 100);
 
       // Update ClientJourney progress
-      await base44.entities.ClientJourney.update(clientJourney.id, {
+      await api.entities.ClientJourney.update(clientJourney.id, {
         progress_percentage: progressPercentage,
         current_step_number: completedCount + 1
       });
@@ -92,7 +92,7 @@ export default function JourneyProgressView({ clientJourney, client, journey, on
 
   const addFeedbackMutation = useMutation({
     mutationFn: ({ stepId, feedback }) => 
-      base44.entities.ClientJourneyStep.update(stepId, { coach_feedback: feedback }),
+      api.entities.ClientJourneyStep.update(stepId, { coach_feedback: feedback }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientJourneySteps'] });
       setFeedbackStep(null);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ export default function PractitionerFormModal({ practitioner, onClose, onSuccess
   }, [practitioner]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Practitioner.create(data),
+    mutationFn: (data) => api.entities.Practitioner.create(data),
     onSuccess: () => {
       toast({ title: "Practitioner added", duration: 2000 });
       onSuccess();
@@ -65,7 +65,7 @@ export default function PractitionerFormModal({ practitioner, onClose, onSuccess
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Practitioner.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Practitioner.update(id, data),
     onSuccess: () => {
       toast({ title: "Practitioner updated", duration: 2000 });
       onSuccess();

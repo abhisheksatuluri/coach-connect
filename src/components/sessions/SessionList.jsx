@@ -1,5 +1,5 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -110,7 +110,7 @@ export default function SessionList({ sessions, clients, onEdit, onDelete }) {
     setSyncingSessionId(sessionId);
     
     try {
-      await base44.functions.invoke('syncGoogleCalendarStatus', { sessionId });
+      await api.functions.invoke('syncGoogleCalendarStatus', { sessionId });
       window.location.reload();
     } catch (error) {
       console.error('Failed to sync status:', error);

@@ -1,65 +1,64 @@
-import { base44 } from './base44Client';
+import api from './api';
 
 
-export const googleOAuthInit = base44.functions.googleOAuthInit;
+export const googleOAuthInit = api.functions.googleOAuthInit;
 
-export const googleOAuthCallback = base44.functions.googleOAuthCallback;
+export const googleOAuthCallback = api.functions.googleOAuthCallback;
 
-export const refreshGoogleToken = base44.functions.refreshGoogleToken;
+export const refreshGoogleToken = api.functions.refreshGoogleToken;
 
-export const createGoogleMeetSession = base44.functions.createGoogleMeetSession;
+export const createGoogleMeetSession = api.functions.createGoogleMeetSession;
 
-export const oauth/google/init = base44.functions.oauth/google/init;
+export const oauth_google_init = api.functions.oauth_google_init;
 
-export const oauth/google/callback = base44.functions.oauth/google/callback;
+export const oauth_google_callback = api.functions.oauth_google_callback;
 
-export const callback = base44.functions.callback;
+export const callback = api.functions.callback;
 
-export const syncGoogleCalendarStatus = base44.functions.syncGoogleCalendarStatus;
+export const syncGoogleCalendarStatus = api.functions.syncGoogleCalendarStatus;
 
-export const meet/createInstantSession = base44.functions.meet/createInstantSession;
+export const meet_createInstantSession = api.functions.meet_createInstantSession;
 
-export const meet/webhookHandler = base44.functions.meet/webhookHandler;
+export const meet_webhookHandler = api.functions.meet_webhookHandler;
 
-export const meet/subscribeWebhook = base44.functions.meet/subscribeWebhook;
+export const meet_subscribeWebhook = api.functions.meet_subscribeWebhook;
 
-export const health = base44.functions.health;
+export const health = api.functions.health;
 
-export const meet/backfillArtifacts = base44.functions.meet/backfillArtifacts;
+export const meet_backfillArtifacts = api.functions.meet_backfillArtifacts;
 
-export const processCompletedMeetings = base44.functions.processCompletedMeetings;
+export const processCompletedMeetings = api.functions.processCompletedMeetings;
 
-export const getSessionArtifactContent = base44.functions.getSessionArtifactContent;
+export const getSessionArtifactContent = api.functions.getSessionArtifactContent;
 
-export const generateSessionAnalysis = base44.functions.generateSessionAnalysis;
+export const generateSessionAnalysis = api.functions.generateSessionAnalysis;
 
-export const sendGmailEmail = base44.functions.sendGmailEmail;
+export const sendGmailEmail = api.functions.sendGmailEmail;
 
-export const backfillActionClients = base44.functions.backfillActionClients;
+export const backfillActionClients = api.functions.backfillActionClients;
 
-export const sendApprovalRequestEmail = base44.functions.sendApprovalRequestEmail;
+export const sendApprovalRequestEmail = api.functions.sendApprovalRequestEmail;
 
-export const approveAction = base44.functions.approveAction;
+export const approveAction = api.functions.approveAction;
 
-export const chat/validateChatPermission = base44.functions.chat/validateChatPermission;
+export const chat_validateChatPermission = api.functions.chat_validateChatPermission;
 
-export const chat/getOrCreateConversation = base44.functions.chat/getOrCreateConversation;
+export const chat_getOrCreateConversation = api.functions.chat_getOrCreateConversation;
 
-export const chat/sendMessage = base44.functions.chat/sendMessage;
+export const chat_sendMessage = api.functions.chat_sendMessage;
 
-export const chat/getConversationMessages = base44.functions.chat/getConversationMessages;
+export const chat_getConversationMessages = api.functions.chat_getConversationMessages;
 
-export const chat/getUnreadCount = base44.functions.chat/getUnreadCount;
+export const chat_getUnreadCount = api.functions.chat_getUnreadCount;
 
-export const analyzeClientKnowledgeBase = base44.functions.analyzeClientKnowledgeBase;
+export const analyzeClientKnowledgeBase = api.functions.analyzeClientKnowledgeBase;
 
-export const analyzeSessionKnowledgeBase = base44.functions.analyzeSessionKnowledgeBase;
+export const analyzeSessionKnowledgeBase = api.functions.analyzeSessionKnowledgeBase;
 
-export const analyzeJourneyKnowledgeBase = base44.functions.analyzeJourneyKnowledgeBase;
+export const analyzeJourneyKnowledgeBase = api.functions.analyzeJourneyKnowledgeBase;
 
-export const logAPIUsage = base44.functions.logAPIUsage;
+export const logAPIUsage = api.functions.logAPIUsage;
 
-export const analyzeNoteKnowledgeBase = base44.functions.analyzeNoteKnowledgeBase;
+export const analyzeNoteKnowledgeBase = api.functions.analyzeNoteKnowledgeBase;
 
-export const migrateTaskContext = base44.functions.migrateTaskContext;
-
+export const migrateTaskContext = api.functions.migrateTaskContext;

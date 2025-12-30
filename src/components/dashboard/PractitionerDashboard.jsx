@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,29 +48,29 @@ export default function PractitionerDashboard() {
 
   const { data: practitioner } = useQuery({
     queryKey: ['practitioner', practitionerId],
-    queryFn: () => base44.entities.Practitioner.get(practitionerId),
+    queryFn: () => api.entities.Practitioner.get(practitionerId),
     enabled: !!practitionerId
   });
 
   const { data: approvalRequests = [], isLoading } = useQuery({
     queryKey: ['approvalRequests', practitionerId],
-    queryFn: () => base44.entities.ApprovalRequest.filter({ practitioner_id: practitionerId }),
+    queryFn: () => api.entities.ApprovalRequest.filter({ practitioner_id: practitionerId }),
     enabled: !!practitionerId
   });
 
   const { data: actions = [] } = useQuery({
     queryKey: ['actions'],
-    queryFn: () => base44.entities.Action.list(),
+    queryFn: () => api.entities.Action.list(),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const actionMap = Object.fromEntries(actions.map(a => [a.id, a]));

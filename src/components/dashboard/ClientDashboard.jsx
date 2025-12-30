@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,48 +53,48 @@ export default function ClientDashboard() {
 
   const { data: client } = useQuery({
     queryKey: ['client', clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    queryFn: () => api.entities.Client.filter({ id: clientId }),
     enabled: !!clientId,
     select: (data) => data[0]
   });
 
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['client-sessions', clientId],
-    queryFn: () => base44.entities.Session.filter({ client_id: clientId }),
+    queryFn: () => api.entities.Session.filter({ client_id: clientId }),
     enabled: !!clientId
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys', clientId],
-    queryFn: () => base44.entities.ClientJourney.filter({ client_id: clientId }),
+    queryFn: () => api.entities.ClientJourney.filter({ client_id: clientId }),
     enabled: !!clientId
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journey-steps'],
-    queryFn: () => base44.entities.JourneyStep.list(),
+    queryFn: () => api.entities.JourneyStep.list(),
   });
 
   const { data: clientJourneySteps = [] } = useQuery({
     queryKey: ['client-journey-steps', clientId],
-    queryFn: () => base44.entities.ClientJourneyStep.list(),
+    queryFn: () => api.entities.ClientJourneyStep.list(),
     enabled: !!clientId
   });
 
   const { data: actions = [] } = useQuery({
     queryKey: ['client-actions', clientId],
-    queryFn: () => base44.entities.Action.filter({ client_id: clientId }),
+    queryFn: () => api.entities.Action.filter({ client_id: clientId }),
     enabled: !!clientId
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const journeyMap = Object.fromEntries(journeys.map(j => [j.id, j]));

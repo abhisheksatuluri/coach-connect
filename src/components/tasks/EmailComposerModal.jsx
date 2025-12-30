@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ export default function EmailComposerModal({ task, client, onClose, onSuccess })
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -68,7 +68,7 @@ ${coachName}`;
         .replace(/>/g, '&gt;')
         .replace(/\n/g, '<br>');
       
-      const response = await base44.functions.invoke('sendGmailEmail', {
+      const response = await api.functions.invoke('sendGmailEmail', {
         to: client.email,
         subject: subject,
         body: htmlBody,
@@ -86,7 +86,7 @@ ${coachName}`;
     onSuccess: async () => {
       // Update task with sent tracking
       try {
-        await base44.entities.Action.update(task.id, {
+        await api.entities.Action.update(task.id, {
           sentToClient: true,
           sentToClientAt: new Date().toISOString(),
           sentToClientSubject: subject
@@ -277,7 +277,7 @@ ${coachName}`;
                         onClick={async () => {
                           setIsReconnecting(true);
                           try {
-                            const response = await base44.functions.invoke('googleOAuthInit');
+                            const response = await api.functions.invoke('googleOAuthInit');
                             if (response.data?.authUrl) {
                               window.location.href = response.data.authUrl;
                             }

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  X, Video, FileText, Sparkles, CheckCircle, Clock, 
+import {
+  X, Video, FileText, Sparkles, CheckCircle, Clock,
   ExternalLink, AlertCircle, Target, AlertTriangle, HelpCircle,
   Download, Calendar, User, Mail, RefreshCw, CheckSquare, Loader2, StickyNote, Pin, Plus
 } from "lucide-react";
@@ -45,32 +45,32 @@ export default function SessionDetail({ session, onClose }) {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['session-tasks', session.id],
-    queryFn: () => base44.entities.Task.filter({ session_id: session.id }),
+    queryFn: () => api.entities.Task.filter({ session_id: session.id }),
   });
 
   const { data: client } = useQuery({
     queryKey: ['client', session.client_id],
-    queryFn: () => session.client_id ? base44.entities.Client.get(session.client_id) : null,
+    queryFn: () => session.client_id ? api.entities.Client.get(session.client_id) : null,
     enabled: !!session.client_id,
   });
 
   const { data: contact } = useQuery({
     queryKey: ['contact', session.contact_id],
-    queryFn: () => session.contact_id ? base44.entities.Contact.get(session.contact_id) : null,
+    queryFn: () => session.contact_id ? api.entities.Contact.get(session.contact_id) : null,
     enabled: !!session.contact_id,
   });
 
   const { data: appliedReferences = [] } = useQuery({
     queryKey: ['applied-references', session.id],
-    queryFn: () => base44.entities.AppliedReference.filter({ session_id: session.id })
+    queryFn: () => api.entities.AppliedReference.filter({ session_id: session.id })
   });
 
-  const sortedReferences = [...appliedReferences].sort((a, b) => 
+  const sortedReferences = [...appliedReferences].sort((a, b) =>
     (b.relevanceScore || 0) - (a.relevanceScore || 0)
   );
 
   const completeSessionMutation = useMutation({
-    mutationFn: (id) => base44.entities.Session.update(id, { 
+    mutationFn: (id) => api.entities.Session.update(id, {
       status: 'completed',
       ended_at: new Date().toISOString()
     }),
@@ -88,14 +88,14 @@ export default function SessionDetail({ session, onClose }) {
 
   const generateInsightsMutation = useMutation({
     mutationFn: async () => {
-      const response = await base44.functions.invoke('generateSessionAnalysis', {
+      const response = await api.functions.invoke('generateSessionAnalysis', {
         session_id: session.id
       });
-      
+
       if (!response.data?.success) {
         throw new Error(response.data?.error || 'Failed to generate insights');
       }
-      
+
       return response.data;
     },
     onSuccess: (data) => {
@@ -135,24 +135,24 @@ export default function SessionDetail({ session, onClose }) {
   const handleBackfill = async () => {
     setIsBackfilling(true);
     setBackfillResult(null);
-    
+
     try {
-      const { data } = await base44.functions.invoke('meet/backfillArtifacts', {
+      const { data } = await api.functions.invoke('meet/backfillArtifacts', {
         sessionId: session.id
       });
-      
+
       setBackfillResult({ success: true, ...data });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-tasks', session.id] });
       queryClient.invalidateQueries({ queryKey: ['session', session.id] });
-      
+
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (error) {
-      setBackfillResult({ 
-        success: false, 
-        error: error.response?.data?.error || error.message 
+      setBackfillResult({
+        success: false,
+        error: error.response?.data?.error || error.message
       });
     } finally {
       setIsBackfilling(false);
@@ -166,12 +166,12 @@ export default function SessionDetail({ session, onClose }) {
     }
   };
 
-  const showBackfillOption = session.meet_space_name && 
+  const showBackfillOption = session.meet_space_name &&
     (!session.recording_file_id || !session.transcript_doc_id || !session.gemini_notes_doc_id);
 
   const hasAnyArtifacts = session.recording_file_id || session.transcript_doc_id || session.gemini_notes_doc_id;
   const hasTranscriptOrNotes = session.transcript_doc_id || session.gemini_notes_doc_id;
-  const canGenerateInsights = hasTranscriptOrNotes && 
+  const canGenerateInsights = hasTranscriptOrNotes &&
     (session.status === 'summary_ready' || session.status === 'completed');
 
   return (
@@ -181,7 +181,7 @@ export default function SessionDetail({ session, onClose }) {
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -214,22 +214,22 @@ export default function SessionDetail({ session, onClose }) {
         </div>
 
         <div className="p-6 space-y-6">
-            {/* Pre-Session Notes */}
-            {session.preSessionNotes && (
-              <Card className="bg-amber-50 border-amber-300 border-2">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
-                    <StickyNote className="w-5 h-5" />
-                    Pre-Session Notes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-800 whitespace-pre-wrap">{session.preSessionNotes}</p>
-                </CardContent>
-              </Card>
-            )}
+          {/* Pre-Session Notes */}
+          {session.preSessionNotes && (
+            <Card className="bg-amber-50 border-amber-300 border-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+                  <StickyNote className="w-5 h-5" />
+                  Pre-Session Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-800 whitespace-pre-wrap">{session.preSessionNotes}</p>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Manual Controls */}
+          {/* Manual Controls */}
           {(showBackfillOption || (session.status !== 'completed' && session.status !== 'cancelled') || canGenerateInsights) && (
             <Card className="bg-amber-50 border-amber-200">
               <CardHeader>
@@ -321,13 +321,13 @@ export default function SessionDetail({ session, onClose }) {
 
           {/* AI Insights Display */}
           {aiInsights && (
-            <AIInsightsDisplay 
-              insights={aiInsights} 
-              sessionId={session.id} 
-              clientId={session.client_id} 
+            <AIInsightsDisplay
+              insights={aiInsights}
+              sessionId={session.id}
+              clientId={session.client_id}
             />
           )}
-          
+
           {backfillResult && (
             <Alert className={backfillResult.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}>
               <AlertDescription className={backfillResult.success ? "text-green-800" : "text-red-800"}>
@@ -557,11 +557,10 @@ export default function SessionDetail({ session, onClose }) {
                   {tasks.map((task) => (
                     <div
                       key={task.id}
-                      className={`p-4 rounded-lg border-2 ${
-                        task.status === 'done'
-                          ? 'bg-gray-50 border-gray-200'
-                          : 'bg-orange-50 border-orange-200'
-                      }`}
+                      className={`p-4 rounded-lg border-2 ${task.status === 'done'
+                        ? 'bg-gray-50 border-gray-200'
+                        : 'bg-orange-50 border-orange-200'
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-gray-900">{task.title}</h4>
@@ -620,15 +619,15 @@ export default function SessionDetail({ session, onClose }) {
           )}
 
           {/* Notes Section */}
-          <NotesSection 
-            linkedSession={session.id} 
-            linkedClient={session.client_id} 
+          <NotesSection
+            linkedSession={session.id}
+            linkedClient={session.client_id}
           />
 
           {/* Files Section */}
-          <FilesSection 
-            linkedSession={session.id} 
-            linkedClient={session.client_id} 
+          <FilesSection
+            linkedSession={session.id}
+            linkedClient={session.client_id}
           />
 
           {/* No Data Yet */}
@@ -641,8 +640,8 @@ export default function SessionDetail({ session, onClose }) {
                   {session.status === 'live'
                     ? 'Session is currently in progress. Recording and transcription will be available after the meeting ends.'
                     : session.status === 'processing'
-                    ? 'Processing recording and transcript. This may take 5-15 minutes.'
-                    : 'Session artifacts will appear here once available.'}
+                      ? 'Processing recording and transcript. This may take 5-15 minutes.'
+                      : 'Session artifacts will appear here once available.'}
                 </p>
               </CardContent>
             </Card>

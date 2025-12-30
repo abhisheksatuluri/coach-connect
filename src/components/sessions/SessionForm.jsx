@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +32,7 @@ export default function SessionForm({ session, clients, onSubmit, onCancel, onCr
     setError(null);
 
     try {
-      const user = await base44.auth.me();
+      const user = await api.auth.me();
       
       if (!user.google_connected) {
         setError('Please connect your Google account first to create sessions with Meet links.');
@@ -40,7 +40,7 @@ export default function SessionForm({ session, clients, onSubmit, onCancel, onCr
         return;
       }
 
-      const { data } = await base44.functions.invoke('createGoogleMeetSession', formData);
+      const { data } = await api.functions.invoke('createGoogleMeetSession', formData);
 
       if (data.needsAuth) {
         setError('Your Google authorization has expired. Please reconnect your account from the top of the page.');

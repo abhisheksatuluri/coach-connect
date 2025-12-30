@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ export default function AISessionInsights({ client, sessions }) {
         throw new Error('No completed sessions found');
       }
       
-      const response = await base44.functions.invoke('generateSessionAnalysis', {
+      const response = await api.functions.invoke('generateSessionAnalysis', {
         session_id: latestCompletedSession.id
       });
       

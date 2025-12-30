@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ export default function ClientCard({ client, onClick }) {
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error('Error loading user:', error);
@@ -58,7 +58,7 @@ export default function ClientCard({ client, onClick }) {
     setMeetError(null);
     
     try {
-      const response = await base44.functions.invoke('meet/createInstantSession', {
+      const response = await api.functions.invoke('meet/createInstantSession', {
         client_id: client.id,
         title: meetData.title,
         coach_email: user?.email,

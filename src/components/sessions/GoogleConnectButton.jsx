@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -43,7 +43,7 @@ export default function GoogleConnectButton() {
   const checkAuthAndConnection = async () => {
     setIsLoading(true);
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
       setUser(currentUser);
       setIsConnected(!!currentUser?.google_connected);
       setError(null);
@@ -66,7 +66,7 @@ export default function GoogleConnectButton() {
     setError(null);
 
     try {
-      const response = await base44.functions.invoke('googleOAuthInit');
+      const response = await api.functions.invoke('googleOAuthInit');
       
       if (response.status === 401) {
         setError('Please sign in to connect your Google account');
@@ -117,7 +117,7 @@ export default function GoogleConnectButton() {
 
   const handleDisconnect = async () => {
     try {
-      await base44.auth.updateMe({
+      await api.auth.updateMe({
         google_connected: false,
         google_access_token: null,
         google_refresh_token: null,

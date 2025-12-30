@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
       else if (objectType === 'note') entityName = 'Note';
       else return null;
       
-      const results = await base44.entities[entityName].filter({ id: objectId });
+      const results = await api.entities[entityName].filter({ id: objectId });
       return results[0] || null;
     },
     enabled: !!objectType && !!objectId && objectType !== 'system' && isOpen
@@ -47,7 +47,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
     queryKey: ['kbAnalysisCache', objectType, objectId],
     queryFn: async () => {
       if (!objectType || !objectId || objectType === 'system') return null;
-      const cache = await base44.entities.KBAnalysisCache.filter({ 
+      const cache = await api.entities.KBAnalysisCache.filter({ 
         objectType, 
         objectId 
       });
@@ -69,7 +69,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
   const { data: systemArticles = [], isLoading: isSystemLoading } = useQuery({
     queryKey: ['systemHelpArticles', currentPageName],
     queryFn: async () => {
-      const articles = await base44.entities.KnowledgeBase.filter({ category: 'System', is_active: true });
+      const articles = await api.entities.KnowledgeBase.filter({ category: 'System', is_active: true });
       
       // Filter for Files page to show only Files-related help
       if (currentPageName === 'Files') {
@@ -88,7 +88,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
   // Fetch all KB articles for detail view
   const { data: allKBArticles = [] } = useQuery({
     queryKey: ['kbArticles-slider'],
-    queryFn: () => base44.entities.KnowledgeBase.filter({ is_active: true }),
+    queryFn: () => api.entities.KnowledgeBase.filter({ is_active: true }),
     enabled: isOpen
   });
 
@@ -178,7 +178,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
       if (currentPageName === 'Notebook') {
         const selectedNoteId = localStorage.getItem('selectedNoteId');
         if (selectedNoteId && selectedNoteId !== '') {
-          const note = await base44.entities.Note.filter({ id: selectedNoteId }).then(r => r[0]);
+          const note = await api.entities.Note.filter({ id: selectedNoteId }).then(r => r[0]);
           if (note) {
             setObjectType('note');
             setObjectId(selectedNoteId);
@@ -190,7 +190,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
       }
       
       if (noteId) {
-        const note = await base44.entities.Note.filter({ id: noteId }).then(r => r[0]);
+        const note = await api.entities.Note.filter({ id: noteId }).then(r => r[0]);
         if (note) {
           setObjectType('note');
           setObjectId(noteId);
@@ -202,7 +202,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
 
       // PRIORITY 2: Session detail page
       if (sessionId) {
-        const session = await base44.entities.Session.filter({ id: sessionId }).then(r => r[0]);
+        const session = await api.entities.Session.filter({ id: sessionId }).then(r => r[0]);
         if (session) {
           setObjectType('session');
           setObjectId(sessionId);
@@ -213,8 +213,8 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
 
       // PRIORITY 3: Client journey detail page
       if (clientJourneyId) {
-        const clientJourney = await base44.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
-        const journey = clientJourney ? await base44.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
+        const clientJourney = await api.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
+        const journey = clientJourney ? await api.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
         if (journey) {
           setObjectType('journey');
           setObjectId(clientJourneyId);
@@ -225,7 +225,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
 
       // PRIORITY 4: Journey template detail page
       if (journeyId) {
-        const journey = await base44.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
+        const journey = await api.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
         if (journey) {
           setObjectType('journey');
           setObjectId(journeyId);
@@ -236,7 +236,7 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
 
       // PRIORITY 5: Client detail page
       if (clientId) {
-        const client = await base44.entities.Client.filter({ id: clientId }).then(r => r[0]);
+        const client = await api.entities.Client.filter({ id: clientId }).then(r => r[0]);
         if (client) {
           setObjectType('client');
           setObjectId(clientId);
@@ -276,22 +276,22 @@ export default function KnowledgeBaseSlider({ isOpen, onClose, currentPageName }
     try {
       let response;
       if (objectType === 'client') {
-        response = await base44.functions.invoke('analyzeClientKnowledgeBase', { clientId: objectId });
+        response = await api.functions.invoke('analyzeClientKnowledgeBase', { clientId: objectId });
       } else if (objectType === 'session') {
-        response = await base44.functions.invoke('analyzeSessionKnowledgeBase', { sessionId: objectId });
+        response = await api.functions.invoke('analyzeSessionKnowledgeBase', { sessionId: objectId });
       } else if (objectType === 'journey') {
         const globalContext = window.__kbContext || {};
         if (globalContext.clientJourneyId) {
-          response = await base44.functions.invoke('analyzeJourneyKnowledgeBase', { 
+          response = await api.functions.invoke('analyzeJourneyKnowledgeBase', { 
             clientJourneyId: objectId 
           });
         } else if (globalContext.journeyId) {
-          response = await base44.functions.invoke('analyzeJourneyKnowledgeBase', { 
+          response = await api.functions.invoke('analyzeJourneyKnowledgeBase', { 
             journeyId: objectId 
           });
         }
       } else if (objectType === 'note') {
-        response = await base44.functions.invoke('analyzeNoteKnowledgeBase', { noteId: objectId });
+        response = await api.functions.invoke('analyzeNoteKnowledgeBase', { noteId: objectId });
       }
 
       if (response?.data?.usage) {

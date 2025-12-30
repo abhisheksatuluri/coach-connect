@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  CheckCircle, 
+import {
+  CheckCircle,
   Circle,
-  Calendar, 
-  Loader2, 
+  Calendar,
+  Loader2,
   AlertCircle,
   Clock,
   RotateCcw,
@@ -30,14 +30,14 @@ export default function ClientTasksPage() {
 
   const { data: client } = useQuery({
     queryKey: ['client', clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    queryFn: () => api.entities.Client.filter({ id: clientId }),
     enabled: !!clientId,
     select: (data) => data[0]
   });
 
   const { data: actions = [], isLoading } = useQuery({
     queryKey: ['client-tasks', clientId],
-    queryFn: () => base44.entities.Action.filter({ 
+    queryFn: () => api.entities.Action.filter({
       client_id: clientId,
       sentToClient: true
     }),
@@ -45,7 +45,7 @@ export default function ClientTasksPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Action.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Action.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-tasks'] });
     }
@@ -54,7 +54,7 @@ export default function ClientTasksPage() {
   const handleToggleComplete = (action, complete) => {
     updateMutation.mutate({
       id: action.id,
-      data: { 
+      data: {
         status: complete ? 'Done' : 'To Do',
         ...(complete && { appliedAt: new Date().toISOString() })
       }
@@ -99,9 +99,8 @@ export default function ClientTasksPage() {
     const today = isToday(date);
 
     return (
-      <div className={`flex items-center gap-1 text-sm ${
-        overdue ? 'text-red-600' : today ? 'text-amber-600' : 'text-gray-500'
-      }`}>
+      <div className={`flex items-center gap-1 text-sm ${overdue ? 'text-red-600' : today ? 'text-amber-600' : 'text-gray-500'
+        }`}>
         <Calendar className="w-3 h-3" />
         <span>
           {overdue ? 'Overdue: ' : today ? 'Due today' : 'Due '}
@@ -166,7 +165,7 @@ export default function ClientTasksPage() {
           ) : (
             <div className="space-y-3">
               {pendingTasks.map(task => (
-                <TaskCard 
+                <TaskCard
                   key={task.id}
                   task={task}
                   onToggle={(complete) => handleToggleComplete(task, complete)}
@@ -198,7 +197,7 @@ export default function ClientTasksPage() {
           ) : (
             <div className="space-y-3">
               {completedTasks.map(task => (
-                <CompletedTaskCard 
+                <CompletedTaskCard
                   key={task.id}
                   task={task}
                   onMarkIncomplete={() => handleToggleComplete(task, false)}
@@ -226,13 +225,13 @@ function TaskCard({ task, onToggle, getPriorityBadge, getDueDateDisplay, isUpdat
               className="h-5 w-5"
             />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-medium text-gray-900">{task.title}</h3>
               {getPriorityBadge(task.priority)}
             </div>
-            
+
             {task.description && (
               <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                 {task.description}
@@ -264,7 +263,7 @@ function CompletedTaskCard({ task, onMarkIncomplete, isUpdating }) {
               <CheckCircle className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-medium text-gray-500 line-through">{task.title}</h3>
@@ -279,7 +278,7 @@ function CompletedTaskCard({ task, onMarkIncomplete, isUpdating }) {
                 Undo
               </Button>
             </div>
-            
+
             {task.description && (
               <p className="text-sm text-gray-400 mt-1 line-clamp-1">
                 {task.description}

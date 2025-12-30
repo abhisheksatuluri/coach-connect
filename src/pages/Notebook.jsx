@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MyNotesTab from "@/components/notebook/MyNotesTab";
@@ -17,36 +17,36 @@ export default function NotebookPage() {
   // Fetch all necessary data for the detail panel
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list(),
+    queryFn: () => api.entities.Session.list(),
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list(),
+    queryFn: () => api.entities.ClientJourney.list(),
   });
 
   const { data: selectedNote } = useQuery({
     queryKey: ['note', selectedNoteId],
     queryFn: async () => {
       if (!selectedNoteId) return null;
-      const notes = await base44.entities.Note.filter({ id: selectedNoteId });
+      const notes = await api.entities.Note.filter({ id: selectedNoteId });
       return notes[0] || null;
     },
     enabled: !!selectedNoteId
   });
 
   const updateNoteMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Note.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Note.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['note', selectedNoteId] });
@@ -54,7 +54,7 @@ export default function NotebookPage() {
   });
 
   const deleteNoteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Note.delete(id),
+    mutationFn: (id) => api.entities.Note.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       setSelectedNoteId('');
@@ -66,12 +66,12 @@ export default function NotebookPage() {
   const handleNoteSelect = (noteId) => {
     console.log('[Notebook] Note clicked, setting selectedNoteId:', noteId);
     console.log('[Notebook] Note ID type:', typeof noteId);
-    
+
     // Ensure noteId is converted to string and stored
     const noteIdString = String(noteId);
     localStorage.setItem('selectedNoteId', noteIdString);
     setSelectedNoteId(noteIdString);
-    
+
     console.log('[Notebook] localStorage now contains:', localStorage.getItem('selectedNoteId'));
     window.dispatchEvent(new Event('noteSelectionChanged'));
   };
@@ -91,7 +91,7 @@ export default function NotebookPage() {
     };
 
     window.addEventListener('selectNote', handleNoteSelection);
-    
+
     // Clear selection when navigating away from Notebook
     return () => {
       console.log('[Notebook] Component unmounting, clearing selection');
@@ -105,10 +105,10 @@ export default function NotebookPage() {
     console.log('[Notebook] Tab changed to:', value);
     console.log('[Notebook] Clearing selection due to tab change');
     setActiveTab(value);
-    
+
     // Store active tab for fallback context detection
     localStorage.setItem('notebookActiveTab', value);
-    
+
     // Clear selection when switching to any tab
     localStorage.setItem('selectedNoteId', '');
     setSelectedNoteId('');

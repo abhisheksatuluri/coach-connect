@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { CreditCard, FileText, Plus, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
@@ -23,7 +23,7 @@ export default function ClientPaymentsSection({ client }) {
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices', client.id],
     queryFn: async () => {
-      const allInvoices = await base44.entities.Invoice.list();
+      const allInvoices = await api.entities.Invoice.list();
       return allInvoices.filter(inv => inv.client_id === client.id);
     },
   });
@@ -31,19 +31,19 @@ export default function ClientPaymentsSection({ client }) {
   const { data: paymentRecords = [] } = useQuery({
     queryKey: ['payment-records', client.id],
     queryFn: async () => {
-      const allRecords = await base44.entities.PaymentRecord.list();
+      const allRecords = await api.entities.PaymentRecord.list();
       return allRecords.filter(rec => rec.client_id === client.id);
     },
   });
 
   const { data: allClients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
   });
 
   const { data: allInvoices = [] } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list(),
+    queryFn: () => api.entities.Invoice.list(),
   });
 
   // Calculate stats
@@ -66,7 +66,7 @@ export default function ClientPaymentsSection({ client }) {
           clients={allClients}
           existingInvoices={allInvoices}
           onSave={async (invoiceData) => {
-            await base44.entities.Invoice.create({
+            await api.entities.Invoice.create({
               ...invoiceData,
               client_id: client.id
             });

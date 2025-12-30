@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ export default function GoogleConnectionStatus() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -27,7 +27,7 @@ export default function GoogleConnectionStatus() {
   const handleReconnect = async () => {
     setIsReconnecting(true);
     try {
-      const response = await base44.functions.invoke('googleOAuthInit');
+      const response = await api.functions.invoke('googleOAuthInit');
       if (response.data?.authUrl) {
         window.location.href = response.data.authUrl;
       }

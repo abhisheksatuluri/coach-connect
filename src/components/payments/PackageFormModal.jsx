@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { X, Plus, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function PackageFormModal({ isOpen, onClose, packageToEdit, journeys }) {
@@ -143,7 +143,7 @@ export default function PackageFormModal({ isOpen, onClose, packageToEdit, journ
   };
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Package.create(data),
+    mutationFn: (data) => api.entities.Package.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['packages'] });
       onClose();
@@ -151,7 +151,7 @@ export default function PackageFormModal({ isOpen, onClose, packageToEdit, journ
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Package.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Package.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['packages'] });
       onClose();

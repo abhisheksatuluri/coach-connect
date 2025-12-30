@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 
 export function useSessions() {
     return useQuery({
         queryKey: ['sessions'],
-        queryFn: () => base44.entities.Session.list('-date_time'),
+        queryFn: () => api.entities.Session.list('-date_time'),
     });
 }
 
 export function useSession(id) {
     return useQuery({
         queryKey: ['sessions', id],
-        queryFn: () => base44.entities.Session.get(id),
+        queryFn: () => api.entities.Session.get(id),
         enabled: !!id,
     });
 }
@@ -19,7 +19,7 @@ export function useSession(id) {
 export function useCreateSession() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data) => base44.entities.Session.create(data),
+        mutationFn: (data) => api.entities.Session.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sessions'] });
         },
@@ -29,7 +29,7 @@ export function useCreateSession() {
 export function useUpdateSession() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }) => base44.entities.Session.update(id, data),
+        mutationFn: ({ id, data }) => api.entities.Session.update(id, data),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['sessions'] });
             queryClient.invalidateQueries({ queryKey: ['sessions', variables.id] });
@@ -40,7 +40,7 @@ export function useUpdateSession() {
 export function useDeleteSession() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => base44.entities.Session.delete(id),
+        mutationFn: (id) => api.entities.Session.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sessions'] });
         },

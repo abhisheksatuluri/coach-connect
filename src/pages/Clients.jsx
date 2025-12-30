@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,21 +14,21 @@ export default function Clients() {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
-  
+
   const queryClient = useQueryClient();
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('-created_date'),
+    queryFn: () => api.entities.Client.list('-created_date'),
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list('-date_time'),
+    queryFn: () => api.entities.Session.list('-date_time'),
   });
 
   const createClientMutation = useMutation({
-    mutationFn: (clientData) => base44.entities.Client.create(clientData),
+    mutationFn: (clientData) => api.entities.Client.create(clientData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       setShowForm(false);
@@ -37,7 +37,7 @@ export default function Clients() {
   });
 
   const updateClientMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Client.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Client.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       setShowForm(false);
@@ -47,7 +47,7 @@ export default function Clients() {
   });
 
   const deleteClientMutation = useMutation({
-    mutationFn: (id) => base44.entities.Client.delete(id),
+    mutationFn: (id) => api.entities.Client.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       setSelectedClient(null);

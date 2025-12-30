@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
   // Resolve client ID - try task.client_id first, then fallback to session
   const { data: session } = useQuery({
     queryKey: ['session', task.session_id],
-    queryFn: () => base44.entities.Session.get(task.session_id),
+    queryFn: () => api.entities.Session.get(task.session_id),
     enabled: !task.client_id && !!task.session_id
   });
 
@@ -44,7 +44,7 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
     queryKey: ['client', resolvedClientId],
     queryFn: async () => {
       console.log('Fetching client with ID:', resolvedClientId);
-      const clientData = await base44.entities.Client.get(resolvedClientId);
+      const clientData = await api.entities.Client.get(resolvedClientId);
       console.log('Fetched client:', clientData);
       return clientData;
     },
@@ -61,7 +61,7 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
   // Fetch client's active journey
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys', resolvedClientId],
-    queryFn: () => base44.entities.ClientJourney.filter({ 
+    queryFn: () => api.entities.ClientJourney.filter({ 
       client_id: resolvedClientId,
       status: "Active"
     }),
@@ -72,7 +72,7 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
   const { data: upcomingSessions = [] } = useQuery({
     queryKey: ['upcoming-sessions', resolvedClientId],
     queryFn: async () => {
-      const sessions = await base44.entities.Session.filter({ 
+      const sessions = await api.entities.Session.filter({ 
         client_id: resolvedClientId 
       });
       const now = new Date();
@@ -87,21 +87,21 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
   const activeJourney = clientJourneys[0];
   const { data: journeySteps = [] } = useQuery({
     queryKey: ['journey-steps', activeJourney?.journey_id],
-    queryFn: () => base44.entities.JourneyStep.filter({ 
+    queryFn: () => api.entities.JourneyStep.filter({ 
       journey_id: activeJourney?.journey_id 
     }),
     enabled: !!activeJourney?.journey_id
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Action.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Action.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
     }
   });
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (id) => base44.entities.Action.delete(id),
+    mutationFn: (id) => api.entities.Action.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
       toast({ title: "Task deleted", duration: 2000 });
@@ -110,21 +110,21 @@ export default function TaskOptionsModal({ task, client: clientProp, onClose, on
   });
 
   const createJourneyStepMutation = useMutation({
-    mutationFn: (data) => base44.entities.JourneyStep.create(data),
+    mutationFn: (data) => api.entities.JourneyStep.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journey-steps'] });
     }
   });
 
   const createClientJourneyStepMutation = useMutation({
-    mutationFn: (data) => base44.entities.ClientJourneyStep.create(data),
+    mutationFn: (data) => api.entities.ClientJourneyStep.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-journey-steps'] });
     }
   });
 
   const updateSessionMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Session.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Session.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       queryClient.invalidateQueries({ queryKey: ['upcoming-sessions'] });

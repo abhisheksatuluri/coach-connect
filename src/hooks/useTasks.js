@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from '../api/api';
 
 export function useTasks() {
     return useQuery({
         queryKey: ['tasks'],
-        queryFn: () => base44.entities.Task.list(),
+        queryFn: () => api.entities.Task.list(),
     });
 }
 
 export function useTask(id) {
     return useQuery({
         queryKey: ['tasks', id],
-        queryFn: () => base44.entities.Task.get(id),
+        queryFn: () => api.entities.Task.get(id),
         enabled: !!id,
     });
 }
@@ -19,7 +19,7 @@ export function useTask(id) {
 export function useCreateTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data) => base44.entities.Task.create(data),
+        mutationFn: (data) => api.entities.Task.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
         },
@@ -29,7 +29,7 @@ export function useCreateTask() {
 export function useUpdateTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+        mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
             queryClient.invalidateQueries({ queryKey: ['tasks', variables.id] });
@@ -40,7 +40,7 @@ export function useUpdateTask() {
 export function useDeleteTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => base44.entities.Task.delete(id),
+        mutationFn: (id) => api.entities.Task.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
         },

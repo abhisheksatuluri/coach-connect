@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +26,7 @@ export default function ActiveChatView({
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['conversation-messages', conversationId],
     queryFn: async () => {
-      const allMessages = await base44.entities.Message.list();
+      const allMessages = await api.entities.Message.list();
       return allMessages
         .filter(m => m.conversation_id === conversationId)
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
@@ -47,7 +47,7 @@ export default function ActiveChatView({
         contentLength: text.length
       });
       
-      await base44.entities.Message.create({
+      await api.entities.Message.create({
         conversation_id: conversationId,
         sender: currentUserEmail,
         senderRole: currentUserRole,
@@ -56,7 +56,7 @@ export default function ActiveChatView({
       });
       
       // Update conversation lastMessage to move it to top
-      await base44.entities.Conversation.update(conversationId, {
+      await api.entities.Conversation.update(conversationId, {
         lastMessageAt: now,
         lastMessagePreview: text.slice(0, 50),
       });
@@ -99,7 +99,7 @@ export default function ActiveChatView({
       
       // Then update in background
       for (const msg of unreadMessages) {
-        await base44.entities.Message.update(msg.id, { isRead: true }).catch(() => {});
+        await api.entities.Message.update(msg.id, { isRead: true }).catch(() => {});
       }
     };
     
@@ -140,7 +140,7 @@ export default function ActiveChatView({
   const handleViewProfile = () => {
     if (participantInfo.role === 'client') {
       // Find client ID by email
-      base44.entities.Client.list().then(clients => {
+      api.entities.Client.list().then(clients => {
         const client = clients.find(c => c.email === participantInfo.email);
         if (client) {
           navigate(createPageUrl('Clients') + '?clientId=' + client.id);

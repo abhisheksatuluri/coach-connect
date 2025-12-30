@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,12 +24,12 @@ export default function SessionArtifactsViewer({ sessionId }) {
 
   const { data: appliedReferences = [] } = useQuery({
     queryKey: ['appliedReferences', sessionId],
-    queryFn: () => base44.entities.AppliedReference.filter({ session_id: sessionId }),
+    queryFn: () => api.entities.AppliedReference.filter({ session_id: sessionId }),
   });
 
   const { data: knowledgeBase = [] } = useQuery({
     queryKey: ['knowledgeBase'],
-    queryFn: () => base44.entities.KnowledgeBase.list(),
+    queryFn: () => api.entities.KnowledgeBase.list(),
   });
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function SessionArtifactsViewer({ sessionId }) {
         setLoading(true);
         setError(null);
         
-        const { data } = await base44.functions.invoke('getSessionArtifactContent', {
+        const { data } = await api.functions.invoke('getSessionArtifactContent', {
           sessionId
         });
         

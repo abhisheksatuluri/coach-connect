@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,11 +47,11 @@ export default function PractitionersPage() {
 
   const { data: practitioners = [], isLoading } = useQuery({
     queryKey: ['practitioners'],
-    queryFn: () => base44.entities.Practitioner.list('-created_date'),
+    queryFn: () => api.entities.Practitioner.list('-created_date'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Practitioner.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Practitioner.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['practitioners'] });
     },
@@ -61,7 +61,7 @@ export default function PractitionersPage() {
   const filteredPractitioners = practitioners
     .filter(p => {
       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           p.email?.toLowerCase().includes(searchQuery.toLowerCase());
+        p.email?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesSpecialty = specialtyFilter === "all" || p.specialty === specialtyFilter;
       return matchesSearch && matchesSpecialty;
     });
@@ -244,8 +244,8 @@ export default function PractitionersPage() {
                 <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">No practitioners found</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  {searchQuery || specialtyFilter !== "all" 
-                    ? "Try adjusting your filters" 
+                  {searchQuery || specialtyFilter !== "all"
+                    ? "Try adjusting your filters"
                     : "Add your first practitioner to get started"}
                 </p>
               </div>

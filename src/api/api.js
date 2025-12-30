@@ -27,7 +27,7 @@ const mockData = {
 
 const createMockEntity = (entityName) => ({
   list: async (sortString) => {
-    // console.log(`[MockBase44] List ${entityName}`);
+    // console.log(`[MockAPI] List ${entityName}`);
     await delay(50); // Small delay to simulate async
     let data = mockData[entityName] || [];
 
@@ -41,7 +41,7 @@ const createMockEntity = (entityName) => ({
     return [...data];
   },
   filter: async (criteria) => {
-    // console.log(`[MockBase44] Filter ${entityName}`, criteria);
+    // console.log(`[MockAPI] Filter ${entityName}`, criteria);
     await delay(50);
     const data = mockData[entityName] || [];
     return data.filter(item => {
@@ -49,21 +49,21 @@ const createMockEntity = (entityName) => ({
     });
   },
   get: async (id) => {
-    // console.log(`[MockBase44] Get ${entityName} ${id}`);
+    // console.log(`[MockAPI] Get ${entityName} ${id}`);
     await delay(50);
     const data = mockData[entityName] || [];
     return data.find(item => item.id === id);
   },
   create: async (payload) => {
-    console.log(`[MockBase44] Create ${entityName}`, payload);
+    console.log(`[MockAPI] Create ${entityName}`, payload);
     return { id: `mock-${Date.now()}`, ...payload };
   },
   update: async (id, payload) => {
-    console.log(`[MockBase44] Update ${entityName} ${id}`, payload);
+    console.log(`[MockAPI] Update ${entityName} ${id}`, payload);
     return { id, ...payload };
   },
   delete: async (id) => {
-    console.log(`[MockBase44] Delete ${entityName} ${id}`);
+    console.log(`[MockAPI] Delete ${entityName} ${id}`);
     return true;
   }
 });
@@ -78,26 +78,26 @@ const entitiesHandler = {
   }
 };
 
-export const base44 = {
+export const api = {
   auth: {
     me: async () => {
-      // console.log("[MockBase44] Auth Me");
+      // console.log("[MockAPI] Auth Me");
       await delay(100);
       return CURRENT_USER;
     },
     login: async () => {
-      console.log("[MockBase44] Login Prevented");
+      console.log("[MockAPI] Login Prevented");
       return CURRENT_USER;
     },
     logout: async () => {
-      console.log("[MockBase44] Logout");
+      console.log("[MockAPI] Logout");
       return true;
     }
   },
   entities: new Proxy({}, entitiesHandler),
   functions: {
     invoke: async (functionName, args) => {
-      console.log(`[MockBase44] Function Invoke: ${functionName}`, args);
+      console.log(`[MockAPI] Function Invoke: ${functionName}`, args);
       await delay(100);
 
       // Basic returns for common functions if needed
@@ -108,4 +108,4 @@ export const base44 = {
   }
 };
 
-export default base44;
+export default api;

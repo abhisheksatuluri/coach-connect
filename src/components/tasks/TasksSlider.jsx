@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,31 +44,31 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
 
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
     enabled: isOpen
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
     enabled: isOpen
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: () => base44.entities.Session.list(),
+    queryFn: () => api.entities.Session.list(),
     enabled: isOpen
   });
 
   const { data: journeys = [] } = useQuery({
     queryKey: ['journeys'],
-    queryFn: () => base44.entities.Journey.list(),
+    queryFn: () => api.entities.Journey.list(),
     enabled: isOpen
   });
 
   const { data: clientJourneys = [] } = useQuery({
     queryKey: ['client-journeys'],
-    queryFn: () => base44.entities.ClientJourney.list(),
+    queryFn: () => api.entities.ClientJourney.list(),
     enabled: isOpen
   });
 
@@ -77,17 +77,17 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
     queryFn: async () => {
       if (!objectType || objectType === 'personal') {
         // Get personal tasks (no context links)
-        const allUserTasks = await base44.entities.Task.list('-created_date', 200);
+        const allUserTasks = await api.entities.Task.list('-created_date', 200);
         return allUserTasks.filter(task => 
           task.created_by === currentUser?.email &&
           !task.client_id && !task.session_id && !task.journey_id
         );
       } else if (objectType === 'client') {
-        return await base44.entities.Task.filter({ client_id: objectId });
+        return await api.entities.Task.filter({ client_id: objectId });
       } else if (objectType === 'session') {
-        return await base44.entities.Task.filter({ session_id: objectId });
+        return await api.entities.Task.filter({ session_id: objectId });
       } else if (objectType === 'journey') {
-        return await base44.entities.Task.filter({ journey_id: objectId });
+        return await api.entities.Task.filter({ journey_id: objectId });
       }
       return [];
     },
@@ -144,7 +144,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
 
         if (selectedNoteId && selectedNoteId !== '' && selectedNoteId !== 'undefined' && selectedNoteId !== 'null') {
           try {
-            const notes = await base44.entities.Note.filter({ id: selectedNoteId });
+            const notes = await api.entities.Note.filter({ id: selectedNoteId });
             const note = notes[0];
             console.log('[TasksSlider] Fetched note:', note);
 
@@ -155,7 +155,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
               // Priority 1: Session (check both linkedSession and session_id)
               const sessionId = note.linkedSession || note.session_id;
               if (sessionId) {
-                const sessions = await base44.entities.Session.filter({ id: sessionId });
+                const sessions = await api.entities.Session.filter({ id: sessionId });
                 const session = sessions[0];
                 console.log('[TasksSlider] Found linked session:', session);
 
@@ -171,11 +171,11 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
               // Priority 2: Journey (check both linkedJourney and journey_id)
               const journeyId = note.linkedJourney || note.journey_id;
               if (journeyId) {
-                const clientJourneys = await base44.entities.ClientJourney.filter({ id: journeyId });
+                const clientJourneys = await api.entities.ClientJourney.filter({ id: journeyId });
                 const clientJourney = clientJourneys[0];
 
                 if (clientJourney) {
-                  const journeys = await base44.entities.Journey.filter({ id: clientJourney.journey_id });
+                  const journeys = await api.entities.Journey.filter({ id: clientJourney.journey_id });
                   const journey = journeys[0];
                   console.log('[TasksSlider] Found linked journey:', journey);
 
@@ -192,7 +192,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
               // Priority 3: Client (check both linkedClient and client_id)
               const clientId = note.linkedClient || note.client_id;
               if (clientId) {
-                const clients = await base44.entities.Client.filter({ id: clientId });
+                const clients = await api.entities.Client.filter({ id: clientId });
                 const client = clients[0];
                 console.log('[TasksSlider] Found linked client:', client);
 
@@ -215,7 +215,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
               
               // If on Client Notes tab with a specific client selected
               if (notebookActiveTab === 'client-notes' && notebookSelectedClientId && notebookSelectedClientId !== '') {
-                const clients = await base44.entities.Client.filter({ id: notebookSelectedClientId });
+                const clients = await api.entities.Client.filter({ id: notebookSelectedClientId });
                 const client = clients[0];
                 console.log('[TasksSlider] Using fallback client from dropdown:', client);
                 
@@ -230,11 +230,11 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
               
               // If on Journey Notes tab with a specific journey selected
               if (notebookActiveTab === 'journey-notes' && notebookSelectedJourneyId && notebookSelectedJourneyId !== '') {
-                const clientJourneys = await base44.entities.ClientJourney.filter({ id: notebookSelectedJourneyId });
+                const clientJourneys = await api.entities.ClientJourney.filter({ id: notebookSelectedJourneyId });
                 const clientJourney = clientJourneys[0];
                 
                 if (clientJourney) {
-                  const journeys = await base44.entities.Journey.filter({ id: clientJourney.journey_id });
+                  const journeys = await api.entities.Journey.filter({ id: clientJourney.journey_id });
                   const journey = journeys[0];
                   console.log('[TasksSlider] Using fallback journey from dropdown:', journey);
                   
@@ -259,7 +259,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
       }
 
       if (sessionId) {
-        const session = await base44.entities.Session.filter({ id: sessionId }).then(r => r[0]);
+        const session = await api.entities.Session.filter({ id: sessionId }).then(r => r[0]);
         if (session) {
           setObjectType('session');
           setObjectId(sessionId);
@@ -269,8 +269,8 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
       }
 
       if (clientJourneyId) {
-        const clientJourney = await base44.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
-        const journey = clientJourney ? await base44.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
+        const clientJourney = await api.entities.ClientJourney.filter({ id: clientJourneyId }).then(r => r[0]);
+        const journey = clientJourney ? await api.entities.Journey.filter({ id: clientJourney.journey_id }).then(r => r[0]) : null;
         if (journey) {
           setObjectType('journey');
           setObjectId(clientJourneyId);
@@ -280,7 +280,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
       }
 
       if (journeyId) {
-        const journey = await base44.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
+        const journey = await api.entities.Journey.filter({ id: journeyId }).then(r => r[0]);
         if (journey) {
           setObjectType('journey');
           setObjectId(journeyId);
@@ -290,7 +290,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
       }
 
       if (clientId) {
-        const client = await base44.entities.Client.filter({ id: clientId }).then(r => r[0]);
+        const client = await api.entities.Client.filter({ id: clientId }).then(r => r[0]);
         if (client) {
           setObjectType('client');
           setObjectId(clientId);
@@ -407,17 +407,17 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
 
   const createMutation = useMutation({
     mutationFn: async (taskData) => {
-      const task = await base44.entities.Task.create(taskData);
+      const task = await api.entities.Task.create(taskData);
       
       // Update linked entity timestamp
       if (taskData.client_id) {
-        await base44.entities.Client.update(taskData.client_id, {}).catch(() => {});
+        await api.entities.Client.update(taskData.client_id, {}).catch(() => {});
       }
       if (taskData.session_id) {
-        await base44.entities.Session.update(taskData.session_id, {}).catch(() => {});
+        await api.entities.Session.update(taskData.session_id, {}).catch(() => {});
       }
       if (taskData.journey_id) {
-        await base44.entities.ClientJourney.update(taskData.journey_id, {}).catch(() => {});
+        await api.entities.ClientJourney.update(taskData.journey_id, {}).catch(() => {});
       }
       
       return task;
@@ -430,17 +430,17 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const task = await base44.entities.Task.update(id, data);
+      const task = await api.entities.Task.update(id, data);
       
       // Update linked entity timestamp
       if (data.client_id) {
-        await base44.entities.Client.update(data.client_id, {}).catch(() => {});
+        await api.entities.Client.update(data.client_id, {}).catch(() => {});
       }
       if (data.session_id) {
-        await base44.entities.Session.update(data.session_id, {}).catch(() => {});
+        await api.entities.Session.update(data.session_id, {}).catch(() => {});
       }
       if (data.journey_id) {
-        await base44.entities.ClientJourney.update(data.journey_id, {}).catch(() => {});
+        await api.entities.ClientJourney.update(data.journey_id, {}).catch(() => {});
       }
       
       return task;
@@ -453,7 +453,7 @@ export default function TasksSlider({ isOpen, onClose, currentPageName }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
+    mutationFn: (id) => api.entities.Task.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks-slider'] });
       setSelectedTask(null);

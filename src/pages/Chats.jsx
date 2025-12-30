@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle, Search, Circle, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -20,12 +20,12 @@ export default function ChatsPage() {
   // Fetch current user
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   // Get current view from localStorage
   const currentView = localStorage.getItem('currentView') || 'coach';
-  
+
   // Get the viewing identity based on current view
   const viewingAsPractitionerId = localStorage.getItem('viewingAsPractitionerId');
   const viewingAsClientId = localStorage.getItem('viewingAsClientId');
@@ -33,7 +33,7 @@ export default function ChatsPage() {
   // Fetch conversations with real-time polling (every 5 seconds on Chats page)
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
-    queryFn: () => base44.entities.Conversation.list('-lastMessageAt'),
+    queryFn: () => api.entities.Conversation.list('-lastMessageAt'),
     enabled: !!currentUser,
     refetchInterval: 5000, // Poll every 5 seconds for real-time updates
   });
@@ -41,7 +41,7 @@ export default function ChatsPage() {
   // Fetch messages with real-time polling
   const { data: messages = [] } = useQuery({
     queryKey: ['messages'],
-    queryFn: () => base44.entities.Message.list('-created_date'),
+    queryFn: () => api.entities.Message.list('-created_date'),
     enabled: !!currentUser,
     refetchInterval: 5000, // Poll every 5 seconds
   });
@@ -49,14 +49,14 @@ export default function ChatsPage() {
   // Fetch clients for names
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => api.entities.Client.list(),
     enabled: !!currentUser,
   });
 
   // Fetch practitioners for names
   const { data: practitioners = [] } = useQuery({
     queryKey: ['practitioners'],
-    queryFn: () => base44.entities.Practitioner.list(),
+    queryFn: () => api.entities.Practitioner.list(),
     enabled: !!currentUser,
   });
 
@@ -77,7 +77,7 @@ export default function ChatsPage() {
   // Filter conversations for current user
   const myConversations = useMemo(() => {
     if (!currentUserEmail) return [];
-    
+
     return conversations
       .filter(c => c.participant1 === currentUserEmail || c.participant2 === currentUserEmail)
       .sort((a, b) => {
@@ -91,17 +91,17 @@ export default function ChatsPage() {
   // Get participant details
   const getParticipantInfo = (conversation) => {
     if (!currentUserEmail) return null;
-    
-    const otherParticipantEmail = conversation.participant1 === currentUserEmail 
-      ? conversation.participant2 
+
+    const otherParticipantEmail = conversation.participant1 === currentUserEmail
+      ? conversation.participant2
       : conversation.participant1;
-    
+
     const otherParticipantRole = conversation.participant1 === currentUserEmail
       ? conversation.participant2Role
       : conversation.participant1Role;
 
     let name = otherParticipantEmail;
-    
+
     // Try to find full name based on role
     if (otherParticipantRole === 'client') {
       const client = clients.find(c => c.email === otherParticipantEmail);
@@ -126,9 +126,9 @@ export default function ChatsPage() {
   const getUnreadCount = (conversationId) => {
     if (!currentUserEmail) return 0;
     return messages.filter(
-      msg => msg.conversation_id === conversationId && 
-      !msg.isRead && 
-      msg.sender !== currentUserEmail
+      msg => msg.conversation_id === conversationId &&
+        !msg.isRead &&
+        msg.sender !== currentUserEmail
     ).length;
   };
 
@@ -164,29 +164,29 @@ export default function ChatsPage() {
   const formatTimestamp = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    
+
     if (isToday(date)) {
       const minutesAgo = Math.floor((new Date() - date) / 1000 / 60);
       if (minutesAgo < 1) return 'Just now';
       if (minutesAgo < 60) return `${minutesAgo}m ago`;
       return format(date, 'h:mm a');
     }
-    
+
     if (isYesterday(date)) {
       return 'Yesterday';
     }
-    
+
     return format(date, 'MMM d');
   };
 
   // Filter conversations by tab
   const tabFilteredConversations = useMemo(() => {
     if (activeTab === 'all') return myConversations;
-    
+
     return myConversations.filter(conv => {
       const participantInfo = getParticipantInfo(conv);
       if (!participantInfo) return false;
-      
+
       if (currentView === 'coach') {
         if (activeTab === 'clients') return participantInfo.role === 'client';
         if (activeTab === 'practitioners') return participantInfo.role === 'practitioner';
@@ -196,7 +196,7 @@ export default function ChatsPage() {
       } else if (currentView === 'client') {
         if (activeTab === 'coaches') return participantInfo.role === 'coach';
       }
-      
+
       return true;
     });
   }, [myConversations, activeTab, currentView]);
@@ -204,20 +204,20 @@ export default function ChatsPage() {
   // Search filtered conversations (real-time, case-insensitive)
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return tabFilteredConversations;
-    
+
     const query = searchQuery.toLowerCase();
     return tabFilteredConversations.filter(conv => {
       const participantInfo = getParticipantInfo(conv);
       if (!participantInfo) return false;
       return participantInfo.name.toLowerCase().includes(query) ||
-             participantInfo.email.toLowerCase().includes(query);
+        participantInfo.email.toLowerCase().includes(query);
     });
   }, [tabFilteredConversations, searchQuery]);
 
   // Calculate unread counts per tab
   const tabUnreadCounts = useMemo(() => {
     const counts = { all: 0, clients: 0, practitioners: 0, coaches: 0 };
-    
+
     myConversations.forEach(conv => {
       const unread = getUnreadCount(conv.id);
       if (unread > 0) {
@@ -228,7 +228,7 @@ export default function ChatsPage() {
         if (participantInfo?.role === 'coach') counts.coaches += unread;
       }
     });
-    
+
     return counts;
   }, [myConversations, messages]);
 
@@ -275,7 +275,7 @@ export default function ChatsPage() {
                 New
               </Button>
             </div>
-            
+
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -294,8 +294,8 @@ export default function ChatsPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full bg-transparent h-auto p-0 space-x-4">
                   {tabs.map(tab => (
-                    <TabsTrigger 
-                      key={tab.value} 
+                    <TabsTrigger
+                      key={tab.value}
                       value={tab.value}
                       className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 data-[state=active]:bg-transparent rounded-none px-0 pb-2 transition-all duration-200"
                     >
@@ -318,18 +318,17 @@ export default function ChatsPage() {
                   const participantInfo = getParticipantInfo(conversation);
                   const unreadCount = getUnreadCount(conversation.id);
                   const isSelected = selectedConversationId === conversation.id;
-                  
+
                   if (!participantInfo) return null;
-                  
+
                   return (
                     <button
                       key={conversation.id}
                       onClick={() => setSelectedConversationId(conversation.id)}
-                      className={`w-full p-4 flex gap-3 hover:bg-purple-50/50 transition-all duration-200 border-l-4 ${
-                        isSelected 
-                          ? 'bg-purple-50 border-purple-500 shadow-sm' 
-                          : 'border-transparent'
-                      } ${unreadCount > 0 ? 'bg-blue-50/40' : ''}`}
+                      className={`w-full p-4 flex gap-3 hover:bg-purple-50/50 transition-all duration-200 border-l-4 ${isSelected
+                        ? 'bg-purple-50 border-purple-500 shadow-sm'
+                        : 'border-transparent'
+                        } ${unreadCount > 0 ? 'bg-blue-50/40' : ''}`}
                     >
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
@@ -337,21 +336,21 @@ export default function ChatsPage() {
                           {participantInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                       </div>
-                      
+
                       {/* Content */}
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`font-semibold text-gray-900 truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
                             {participantInfo.name}
                           </span>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`text-xs capitalize flex-shrink-0 ${getRoleBadgeStyle(participantInfo.role)}`}
                           >
                             {participantInfo.role}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm text-gray-600 truncate flex-1">
                             {conversation.lastMessagePreview || 'No messages yet'}
@@ -362,7 +361,7 @@ export default function ChatsPage() {
                             </span>
                           )}
                         </div>
-                        
+
                         {/* Unread indicator */}
                         {unreadCount > 0 && (
                           <div className="flex items-center gap-2 mt-2">

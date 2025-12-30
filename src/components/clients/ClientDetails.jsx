@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Phone, Target, Calendar, AlertCircle, X, Edit, Trash2, User, CheckSquare, StickyNote, Pin, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import api from "@/api/api";
 import ClientRecommendations from "./ClientRecommendations";
 import NotesSection from "@/components/notes/NotesSection";
 import FilesSection from "@/components/files/FilesSection";
